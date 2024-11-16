@@ -133,26 +133,6 @@
                         table.rows.add(data).draw();
                         
                         console.log('Data loaded and drawn:', data.length, 'rows');
-
-                        // Add global search after data is loaded
-                        // First, remove any existing search box to avoid duplicates
-                        $('.global-search-container').remove();
-                        
-                        // Add the search box
-                        let searchHtml = `
-                            <div class="global-search-container">
-                                <label>Global Search:</label>
-                                <input type="search" id="globalSearch" class="form-control">
-                            </div>
-                        `;
-                        $('.filters').append(searchHtml);
-
-                        // Bind the search event
-                        $('#globalSearch').on('keyup', function() {
-                            let searchValue = $(this).val();
-                            console.log('Searching for:', searchValue); // Debug log
-                            table.search(searchValue).draw();
-                        });
                     })
                     .fail(function(jqXHR, textStatus, errorThrown) {
                         console.error('Failed to load CSV:', textStatus, errorThrown);
@@ -166,6 +146,19 @@
                         format: 'YYYY-MM-DD'
                     });
                 }
+            });
+
+            // Wait for document to be ready
+            $(document).ready(function() {
+                // Global search functionality
+                $(document).on('keyup', '#globalSearch', function() {
+                    let searchText = $(this).val().toLowerCase();
+                    
+                    // Apply search filter
+                    table.search(searchText).draw();
+                    
+                    console.log('Searching for:', searchText); // Debug log
+                });
             });
 
             // Date filter event handlers
