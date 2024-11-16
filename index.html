@@ -101,7 +101,7 @@
             // Initialize DataTable
             let table = $('#dataTable').DataTable({
                 ajax: {
-                    url: 'large_dataset.csv',
+                    url: './large_dataset.csv',
                     dataSrc: function(data) {
                         // Convert CSV to array of arrays
                         return data.split('\n').slice(1).map(row => row.split(','));
