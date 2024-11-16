@@ -104,10 +104,12 @@
                 dom: 'lrtip',
                 pageLength: 100,
                 order: [[0, 'asc']],
+                search: {
+                    search: ''
+                },
                 initComplete: function() {
                     // Load CSV file using jQuery
                     $.get('./large_dataset.csv', function(csvData) {
-                        // Parse CSV and add data to table
                         const rows = csvData.split(/\r?\n/)
                             .filter(row => row.trim().length > 0);
                         
@@ -116,10 +118,14 @@
                             return columns.map(cell => cell.trim().replace(/^"(.*)"$/, '$1'));
                         });
                         
-                        // Clear existing data
+                        // Clear existing data and add new data
                         table.clear();
-                        // Add new data and redraw
                         table.rows.add(data).draw();
+                        
+                        // Reset filters to show all data
+                        $('#priorityFilter').val('');  // Reset priority filter to "All"
+                        $('.global-search').val('');   // Clear global search
+                        table.search('').columns().search('').draw();  // Clear all column filters
                         
                         console.log('Data loaded and drawn:', data.length, 'rows');
                     })
@@ -128,7 +134,7 @@
                         console.error('Error details:', errorThrown);
                     });
 
-                    // Initialize date inputs
+                    // Initialize date inputs with no default dates
                     minDate = new DateTime($('#min'), {
                         format: 'YYYY-MM-DD'
                     });
@@ -139,11 +145,6 @@
                     // Add search box for global search
                     $('<div class="filter-group"><label>Global Search:</label><input type="search" class="global-search"></div>')
                         .appendTo('.filters');
-
-                    // Handle global search
-                    $('.global-search').on('keyup', function() {
-                        table.search(this.value).draw();
-                    });
                 }
             });
 
