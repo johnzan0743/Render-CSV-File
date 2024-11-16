@@ -111,19 +111,21 @@
                         const rows = csvData.split(/\r?\n/)
                             .filter(row => row.trim().length > 0);
                         
-                        const data = rows.slice(1).map(row => 
-                            row.split(',').map(cell => cell.trim())
-                        );
+                        const data = rows.slice(1).map(row => {
+                            const columns = row.split(',');
+                            return columns.map(cell => cell.trim().replace(/^"(.*)"$/, '$1'));
+                        });
                         
-                        // Clear and add new data
+                        // Clear existing data
                         table.clear();
-                        table.rows.add(data);
-                        table.draw();
+                        // Add new data and redraw
+                        table.rows.add(data).draw();
                         
-                        console.log('Data loaded:', data.length, 'rows');
+                        console.log('Data loaded and drawn:', data.length, 'rows');
                     })
                     .fail(function(jqXHR, textStatus, errorThrown) {
                         console.error('Failed to load CSV:', textStatus, errorThrown);
+                        console.error('Error details:', errorThrown);
                     });
 
                     // Initialize date inputs
@@ -152,7 +154,7 @@
 
             // Handle priority filter
             $('#priorityFilter').on('change', function() {
-                table.column(9) // Priority is in column 9
+                table.column(9)
                     .search(this.value)
                     .draw();
             });
