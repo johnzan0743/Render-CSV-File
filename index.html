@@ -104,22 +104,39 @@
                     url: './large_dataset.csv',
                     dataType: 'text',
                     dataSrc: function(csvData) {
-                        // Skip empty rows and handle potential carriage returns
-                        return csvData.split(/\r?\n/)
-                            .filter(row => row.trim().length > 0)  // Remove empty rows
-                            .slice(1)  // Skip header row
-                            .map(row => {
-                                // Handle cases where fields might contain commas within quotes
-                                const matches = row.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
-                                if (matches) {
-                                    return matches.map(value => 
-                                        value.replace(/^"(.*)"$/, '$1')  // Remove quotes if present
-                                    );
-                                }
-                                return row.split(',');  // Simple split for rows without quoted values
+                        try {
+                            // Parse CSV data
+                            const rows = csvData.split(/\r?\n/)
+                                .filter(row => row.trim().length > 0);
+                            
+                            // Skip header row and process data rows
+                            const data = rows.slice(1).map(row => {
+                                // Split by comma, but respect quoted values
+                                return row.split(',').map(cell => cell.trim());
                             });
+                            
+                            console.log('Parsed data:', data); // Debug log
+                            return data;
+                            
+                        } catch (error) {
+                            console.error('Error parsing CSV:', error);
+                            console.log('Raw CSV data:', csvData);
+                            return [];
+                        }
                     }
                 },
+                columns: [
+                    { title: "ID" },
+                    { title: "Date" },
+                    { title: "Value" },
+                    { title: "Category" },
+                    { title: "Score" },
+                    { title: "Status" },
+                    { title: "Quantity" },
+                    { title: "Price" },
+                    { title: "Region" },
+                    { title: "Priority" }
+                ],
                 pageLength: 100,
                 dom: 'lrtip', // Removes default search box
                 order: [[0, 'asc']], // Sort by ID by default
