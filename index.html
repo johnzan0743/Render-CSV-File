@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Table Demo</title>
+    
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/select/1.7.0/css/select.dataTables.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/datetime/1.5.1/css/dataTables.dateTime.min.css">
+    
+    <!-- jQuery -->
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    
+    <!-- DataTables JS -->
+    <script type="text/javascript" src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/select/1.7.0/js/dataTables.select.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/datetime/1.5.1/js/dataTables.dateTime.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.2/moment.min.js"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .filters {
+            margin-bottom: 20px;
+        }
+        .filter-group {
+            margin-bottom: 10px;
+        }
+        label {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Data Table with Filters</h1>
+
+    <div class="filters">
+        <div class="filter-group">
+            <label>Date range:</label>
+            <input type="text" id="min" name="min">
+            <label>to</label>
+            <input type="text" id="max" name="max">
+        </div>
+        
+        <div class="filter-group">
+            <label>Priority:</label>
+            <select id="priorityFilter">
+                <option value="">All</option>
+                <option value="High">High</option>
+                <option value="Medium">Medium</option>
+                <option value="Low">Low</option>
+            </select>
+        </div>
+    </div>
+
+    <table id="dataTable" class="display">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Date</th>
+                <th>Value</th>
+                <th>Category</th>
+                <th>Score</th>
+                <th>Status</th>
+                <th>Quantity</th>
+                <th>Price</th>
+                <th>Region</th>
+                <th>Priority</th>
+            </tr>
+        </thead>
+    </table>
+
+    <script>
+        $(document).ready(function() {
+            // Initialize date range pickers
+            let minDate, maxDate;
+            
+            // Custom filtering function for dates
+            $.fn.dataTable.ext.search.push(
+                function(settings, data, dataIndex) {
+                    let min = minDate.val();
+                    let max = maxDate.val();
+                    let date = new Date(data[1]); // Date is in column 1
+
+                    if (
+                        (min === "" && max === "") ||
+                        (min === "" && date <= max) ||
+                        (min <= date && max === "") ||
+                        (min <= date && date <= max)
+                    ) {
+                        return true;
+                    }
+                    return false;
+                }
+            );
+
+            // Initialize DataTable
+            let table = $('#dataTable').DataTable({
+                ajax: {
+                    url: 'large_dataset.csv',
+                    dataSrc: function(data) {
+                        // Convert CSV to array of arrays
+                        return data.split('\n').slice(1).map(row => row.split(','));
+                    }
+                },
+                pageLength: 100,
+                dom: 'lrtip', // Removes default search box
+                order: [[0, 'asc']], // Sort by ID by default
+                initComplete: function() {
+                    // Initialize date inputs
+                    minDate = new DateTime($('#min'), {
+                        format: 'YYYY-MM-DD'
+                    });
+                    maxDate = new DateTime($('#max'), {
+                        format: 'YYYY-MM-DD'
+                    });
+
+                    // Add search box for global search
+                    $('<div class="filter-group"><label>Global Search:</label><input type="search" class="global-search"></div>')
+                        .appendTo('.filters');
+
+                    // Handle global search
+                    $('.global-search').on('keyup', function() {
+                        table.search(this.value).draw();
+                    });
+                }
+            });
+
+            // Handle date filter changes
+            $('#min, #max').on('change', function() {
+                table.draw();
+            });
+
+            // Handle priority filter
+            $('#priorityFilter').on('change', function() {
+                table.column(9) // Priority is in column 9
+                    .search(this.value)
+                    .draw();
+            });
+        });
+    </script>
+</body>
+</html> 
