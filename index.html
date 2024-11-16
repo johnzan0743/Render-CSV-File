@@ -82,19 +82,29 @@
             // Custom filtering function for dates
             $.fn.dataTable.ext.search.push(
                 function(settings, data, dataIndex) {
-                    let min = minDate.val();
-                    let max = maxDate.val();
-                    let date = new Date(data[1]); // Date is in column 1
+                    let minDateVal = $('#min').val();
+                    let maxDateVal = $('#max').val();
+                    let dateVal = data[1]; // Date is in the second column (index 1)
 
-                    if (
-                        (min === "" && max === "") ||
-                        (min === "" && date <= max) ||
-                        (min <= date && max === "") ||
-                        (min <= date && date <= max)
-                    ) {
+                    // If both date inputs are empty, show all rows
+                    if (!minDateVal && !maxDateVal) {
                         return true;
                     }
-                    return false;
+
+                    let date = new Date(dateVal);
+                    let min = minDateVal ? new Date(minDateVal) : null;
+                    let max = maxDateVal ? new Date(maxDateVal) : null;
+
+                    // Check min date
+                    if (min && date < min) {
+                        return false;
+                    }
+                    // Check max date
+                    if (max && date > max) {
+                        return false;
+                    }
+
+                    return true;
                 }
             );
 
@@ -121,11 +131,6 @@
                         // Clear existing data and add new data
                         table.clear();
                         table.rows.add(data).draw();
-                        
-                        // Reset filters to show all data
-                        $('#priorityFilter').val('');  // Reset priority filter to "All"
-                        $('.global-search').val('');   // Clear global search
-                        table.search('').columns().search('').draw();  // Clear all column filters
                         
                         console.log('Data loaded and drawn:', data.length, 'rows');
                     })
