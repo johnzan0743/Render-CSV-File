@@ -100,47 +100,32 @@
 
             // Initialize DataTable
             let table = $('#dataTable').DataTable({
-                ajax: {
-                    url: './large_dataset.csv',
-                    dataType: 'text',
-                    dataSrc: function(csvData) {
-                        try {
-                            // Parse CSV data
-                            const rows = csvData.split(/\r?\n/)
-                                .filter(row => row.trim().length > 0);
-                            
-                            // Skip header row and process data rows
-                            const data = rows.slice(1).map(row => {
-                                // Split by comma, but respect quoted values
-                                return row.split(',').map(cell => cell.trim());
-                            });
-                            
-                            console.log('Parsed data:', data); // Debug log
-                            return data;
-                            
-                        } catch (error) {
-                            console.error('Error parsing CSV:', error);
-                            console.log('Raw CSV data:', csvData);
-                            return [];
-                        }
-                    }
-                },
-                columns: [
-                    { title: "ID" },
-                    { title: "Date" },
-                    { title: "Value" },
-                    { title: "Category" },
-                    { title: "Score" },
-                    { title: "Status" },
-                    { title: "Quantity" },
-                    { title: "Price" },
-                    { title: "Region" },
-                    { title: "Priority" }
-                ],
+                processing: true,
+                dom: 'lrtip',
                 pageLength: 100,
-                dom: 'lrtip', // Removes default search box
-                order: [[0, 'asc']], // Sort by ID by default
+                order: [[0, 'asc']],
                 initComplete: function() {
+                    // Load CSV file using jQuery
+                    $.get('./large_dataset.csv', function(csvData) {
+                        // Parse CSV and add data to table
+                        const rows = csvData.split(/\r?\n/)
+                            .filter(row => row.trim().length > 0);
+                        
+                        const data = rows.slice(1).map(row => 
+                            row.split(',').map(cell => cell.trim())
+                        );
+                        
+                        // Clear and add new data
+                        table.clear();
+                        table.rows.add(data);
+                        table.draw();
+                        
+                        console.log('Data loaded:', data.length, 'rows');
+                    })
+                    .fail(function(jqXHR, textStatus, errorThrown) {
+                        console.error('Failed to load CSV:', textStatus, errorThrown);
+                    });
+
                     // Initialize date inputs
                     minDate = new DateTime($('#min'), {
                         format: 'YYYY-MM-DD'
