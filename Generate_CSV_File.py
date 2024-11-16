@@ -6,6 +6,8 @@ import random
 # Set random seed for reproducibility
 np.random.seed(42)
 
+# Some random comments
+
 # Number of rows to generate
 n_rows = 10000
 
