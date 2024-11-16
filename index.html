@@ -115,6 +115,17 @@
                 order: [[0, 'asc']],
                 dom: 'lrtip',
                 initComplete: function() {
+                    // Add search box to filters section
+                    $('<div class="filter-group">')
+                        .append('<label>Search:</label>')
+                        .append($('<input type="search" class="form-control">'))
+                        .appendTo('.filters');
+
+                    // Bind search functionality
+                    $('.filters input[type="search"]').on('keyup', function() {
+                        table.search(this.value).draw();
+                    });
+
                     // Load CSV file using jQuery
                     $.get('./large_dataset.csv', function(csvData) {
                         const rows = csvData.split(/\r?\n/)
@@ -128,16 +139,10 @@
                         table.clear();
                         table.rows.add(data).draw();
                         
-                        // Move search box to filters
-                        $('.dataTables_filter')
-                            .detach()
-                            .addClass('filter-group')
-                            .appendTo('.filters');
-                        
-                        // Optional: Modify the search label if needed
-                        $('.dataTables_filter label').contents().first().replaceWith('Search:');
-                        
                         console.log('Data loaded and drawn:', data.length, 'rows');
+                    })
+                    .fail(function(jqXHR, textStatus, errorThrown) {
+                        console.error('Failed to load CSV:', textStatus, errorThrown);
                     });
 
                     // Initialize date inputs
