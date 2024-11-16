@@ -55,11 +55,6 @@
                 <option value="Low">Low</option>
             </select>
         </div>
-        
-        <div class="filter-group">
-            <label>Global Search:</label>
-            <input type="search" id="globalSearch" class="form-control">
-        </div>
     </div>
 
     <table id="dataTable" class="display">
@@ -118,6 +113,7 @@
                 processing: true,
                 pageLength: 100,
                 order: [[0, 'asc']],
+                dom: 'lrtip',
                 initComplete: function() {
                     // Load CSV file using jQuery
                     $.get('./large_dataset.csv', function(csvData) {
@@ -132,27 +128,16 @@
                         table.clear();
                         table.rows.add(data).draw();
                         
+                        // Move search box to filters
+                        $('.dataTables_filter')
+                            .detach()
+                            .addClass('filter-group')
+                            .appendTo('.filters');
+                        
+                        // Optional: Modify the search label if needed
+                        $('.dataTables_filter label').contents().first().replaceWith('Search:');
+                        
                         console.log('Data loaded and drawn:', data.length, 'rows');
-
-                        // Add global search box
-                        if ($('#globalSearch').length === 0) {
-                            $('.filters').append(`
-                                <div class="filter-group">
-                                    <label>Global Search:</label>
-                                    <input type="search" id="globalSearch" class="form-control">
-                                </div>
-                            `);
-                        }
-
-                        // Attach search event handler
-                        $('#globalSearch').off('keyup').on('keyup', function() {
-                            const searchText = $(this).val();
-                            console.log('Searching for:', searchText);
-                            table.search(searchText).draw();
-                        });
-                    })
-                    .fail(function(jqXHR, textStatus, errorThrown) {
-                        console.error('Failed to load CSV:', textStatus, errorThrown);
                     });
 
                     // Initialize date inputs
