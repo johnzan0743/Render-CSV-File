@@ -102,9 +102,22 @@
             let table = $('#dataTable').DataTable({
                 ajax: {
                     url: './large_dataset.csv',
-                    dataSrc: function(data) {
-                        // Convert CSV to array of arrays
-                        return data.split('\n').slice(1).map(row => row.split(','));
+                    dataType: 'text',
+                    dataSrc: function(csvData) {
+                        // Skip empty rows and handle potential carriage returns
+                        return csvData.split(/\r?\n/)
+                            .filter(row => row.trim().length > 0)  // Remove empty rows
+                            .slice(1)  // Skip header row
+                            .map(row => {
+                                // Handle cases where fields might contain commas within quotes
+                                const matches = row.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
+                                if (matches) {
+                                    return matches.map(value => 
+                                        value.replace(/^"(.*)"$/, '$1')  // Remove quotes if present
+                                    );
+                                }
+                                return row.split(',');  // Simple split for rows without quoted values
+                            });
                     }
                 },
                 pageLength: 100,
