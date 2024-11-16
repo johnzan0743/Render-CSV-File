@@ -133,6 +133,26 @@
                         table.rows.add(data).draw();
                         
                         console.log('Data loaded and drawn:', data.length, 'rows');
+
+                        // Add global search after data is loaded
+                        // First, remove any existing search box to avoid duplicates
+                        $('.global-search-container').remove();
+                        
+                        // Add the search box
+                        let searchHtml = `
+                            <div class="global-search-container">
+                                <label>Global Search:</label>
+                                <input type="search" id="globalSearch" class="form-control">
+                            </div>
+                        `;
+                        $('.filters').append(searchHtml);
+
+                        // Bind the search event
+                        $('#globalSearch').on('keyup', function() {
+                            let searchValue = $(this).val();
+                            console.log('Searching for:', searchValue); // Debug log
+                            table.search(searchValue).draw();
+                        });
                     })
                     .fail(function(jqXHR, textStatus, errorThrown) {
                         console.error('Failed to load CSV:', textStatus, errorThrown);
@@ -148,12 +168,7 @@
                 }
             });
 
-            // Global search functionality
-            $('#globalSearch').on('keyup', function() {
-                table.search($(this).val()).draw();
-            });
-
-            // Handle date filter changes
+            // Date filter event handlers
             $('#min, #max').on('change', function() {
                 table.draw();
             });
