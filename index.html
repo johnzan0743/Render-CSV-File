@@ -55,6 +55,11 @@
                 <option value="Low">Low</option>
             </select>
         </div>
+        
+        <div class="filter-group">
+            <label>Global Search:</label>
+            <input type="search" id="globalSearch" class="form-control">
+        </div>
     </div>
 
     <table id="dataTable" class="display">
@@ -111,12 +116,8 @@
             // Initialize DataTable
             let table = $('#dataTable').DataTable({
                 processing: true,
-                dom: 'lrtip',
                 pageLength: 100,
                 order: [[0, 'asc']],
-                search: {
-                    search: ''
-                },
                 initComplete: function() {
                     // Load CSV file using jQuery
                     $.get('./large_dataset.csv', function(csvData) {
@@ -128,7 +129,6 @@
                             return columns.map(cell => cell.trim().replace(/^"(.*)"$/, '$1'));
                         });
                         
-                        // Clear existing data and add new data
                         table.clear();
                         table.rows.add(data).draw();
                         
@@ -136,21 +136,21 @@
                     })
                     .fail(function(jqXHR, textStatus, errorThrown) {
                         console.error('Failed to load CSV:', textStatus, errorThrown);
-                        console.error('Error details:', errorThrown);
                     });
 
-                    // Initialize date inputs with no default dates
+                    // Initialize date inputs
                     minDate = new DateTime($('#min'), {
                         format: 'YYYY-MM-DD'
                     });
                     maxDate = new DateTime($('#max'), {
                         format: 'YYYY-MM-DD'
                     });
-
-                    // Add search box for global search
-                    $('<div class="filter-group"><label>Global Search:</label><input type="search" class="global-search"></div>')
-                        .appendTo('.filters');
                 }
+            });
+
+            // Global search functionality
+            $('#globalSearch').on('keyup', function() {
+                table.search($(this).val()).draw();
             });
 
             // Handle date filter changes
