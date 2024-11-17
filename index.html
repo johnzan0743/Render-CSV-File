@@ -256,15 +256,34 @@
             });
             
             // Handle tag removal for both filters
-            $('.tag-filter-container').on('click', '.remove', function() {
+            $('.tag-filter-container').on('click', '.remove', function(e) {
+                e.stopPropagation(); // Prevent dropdown from opening when removing tag
                 const value = $(this).parent().text().trim().replace('×', '');
                 const isRegionFilter = $(this).closest('.filter-group').find('.region-dropdown').length > 0;
                 
                 if (isRegionFilter) {
                     selectedRegions.delete(value);
+                    // If no tags left, add back "All" tag
+                    if (selectedRegions.size === 0) {
+                        selectedRegions.add('All');
+                        const tag = $(`<div class="priority-tag">
+                            All
+                            <span class="remove">×</span>
+                        </div>`);
+                        tag.insertBefore($(this).closest('.tag-filter-container').find('.dropdown-menu'));
+                    }
                     updateRegionFilter();
                 } else {
                     selectedPriorities.delete(value);
+                    // If no tags left, add back "All" tag
+                    if (selectedPriorities.size === 0) {
+                        selectedPriorities.add('All');
+                        const tag = $(`<div class="priority-tag">
+                            All
+                            <span class="remove">×</span>
+                        </div>`);
+                        tag.insertBefore($(this).closest('.tag-filter-container').find('.dropdown-menu'));
+                    }
                     updatePriorityFilter();
                 }
                 
