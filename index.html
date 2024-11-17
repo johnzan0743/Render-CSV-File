@@ -26,12 +26,22 @@
         }
         .filters {
             margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
         }
         .filter-group {
-            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            margin-bottom: 0;
         }
-        label {
+        .filter-group label {
             margin-right: 10px;
+            white-space: nowrap;
+        }
+        .filter-group input[type="text"],
+        .filter-group input[type="search"] {
+            width: 150px;
         }
         #toggleFilters {
             margin-bottom: 10px;
