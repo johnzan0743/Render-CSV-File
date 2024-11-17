@@ -33,15 +33,19 @@
         .filter-group {
             display: flex;
             align-items: center;
-            margin-bottom: 0;
+            gap: 10px;
         }
         .filter-group label {
-            margin-right: 10px;
+            font-size: 16px;
             white-space: nowrap;
         }
-        .filter-group input[type="text"],
-        .filter-group input[type="search"] {
-            width: 150px;
+        .filter-select {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            min-width: 200px;
+            font-size: 16px;
+            background-color: white;
         }
         #toggleFilters {
             margin-bottom: 10px;
@@ -56,6 +60,53 @@
             min-width: 120px;
             height: auto;
         }
+        .tag-filter-container {
+            border: 1px solid #ccc;
+            padding: 5px;
+            min-height: 38px;
+            border-radius: 4px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            align-items: center;
+            background-color: white;
+            min-width: 200px;
+        }
+        
+        .tag-filter-container select {
+            border: none;
+            outline: none;
+            padding: 5px;
+            min-width: 100px;
+            background: transparent;
+        }
+        
+        .priority-tag {
+            background-color: #e7f3ff;
+            border: 1px solid #2196F3;
+            border-radius: 3px;
+            padding: 2px 8px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .priority-tag .remove {
+            cursor: pointer;
+            color: #666;
+            font-weight: bold;
+        }
+        
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .filter-group label {
+            font-size: 16px;
+            white-space: nowrap;
+        }
     </style>
 </head>
 <body>
@@ -65,22 +116,29 @@
     <div class="filters">
         <div class="filter-group">
             <label>Region:</label>
-            <select id="regionFilter">
-                <option value="">All</option>
-                <option value="North">North</option>
-                <option value="South">South</option>
-                <option value="East">East</option>
-                <option value="West">West</option>
-            </select>
+            <div class="tag-filter-container">
+                <select class="filter-select region-dropdown">
+                    <option value="">Select Region...</option>
+                    <option value="All">All</option>
+                    <option value="North">North</option>
+                    <option value="South">South</option>
+                    <option value="East">East</option>
+                    <option value="West">West</option>
+                </select>
+            </div>
         </div>
         
         <div class="filter-group">
             <label>Priority:</label>
-            <select id="priorityFilter" multiple>
-                <option value="High">High</option>
-                <option value="Medium">Medium</option>
-                <option value="Low">Low</option>
-            </select>
+            <div class="tag-filter-container">
+                <select class="filter-select priority-dropdown">
+                    <option value="">Select Priority...</option>
+                    <option value="All">All</option>
+                    <option value="High">High</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Low">Low</option>
+                </select>
+            </div>
         </div>
     </div>
 
@@ -142,24 +200,102 @@
                 }
             });
 
-            // Add region filter handler
-            $('#regionFilter').on('change', function() {
-                table.column(8)  // Region is in the 9th column (index 8)
-                    .search(this.value)
-                    .draw();
+            let selectedPriorities = new Set();
+            let selectedRegions = new Set();
+            
+            // Priority Filter Handler
+            $('.priority-dropdown').on('change', function() {
+                const value = $(this).val();
+                if (!value) return;
+                
+                if (value === 'All') {
+                    if (!selectedPriorities.has('All')) {
+                        selectedPriorities.add('All');
+                        const tag = $(`<div class="priority-tag">
+                            All
+                            <span class="remove">×</span>
+                        </div>`);
+                        tag.insertBefore($(this));
+                    }
+                } else if (!selectedPriorities.has(value)) {
+                    selectedPriorities.add(value);
+                    const tag = $(`<div class="priority-tag">
+                        ${value}
+                        <span class="remove">×</span>
+                    </div>`);
+                    tag.insertBefore($(this));
+                }
+                
+                $(this).val('');
+                updatePriorityFilter();
             });
-
-            // Update the priority filter handler for multiple selections
-            $('#priorityFilter').on('change', function() {
-                let values = $(this).val() || [];  // Get array of selected values
-                let searchTerm = values.length ? 
-                                '^(' + values.join('|') + ')$' : 
-                                '';  // Create regex pattern or empty string
+            
+            // Region Filter Handler
+            $('.region-dropdown').on('change', function() {
+                const value = $(this).val();
+                if (!value) return;
+                
+                if (value === 'All') {
+                    if (!selectedRegions.has('All')) {
+                        selectedRegions.add('All');
+                        const tag = $(`<div class="priority-tag">
+                            All
+                            <span class="remove">×</span>
+                        </div>`);
+                        tag.insertBefore($(this));
+                    }
+                } else if (!selectedRegions.has(value)) {
+                    selectedRegions.add(value);
+                    const tag = $(`<div class="priority-tag">
+                        ${value}
+                        <span class="remove">×</span>
+                    </div>`);
+                    tag.insertBefore($(this));
+                }
+                
+                $(this).val('');
+                updateRegionFilter();
+            });
+            
+            // Handle tag removal for both filters
+            $('.tag-filter-container').on('click', '.remove', function() {
+                const value = $(this).parent().text().trim().replace('×', '');
+                const isRegionFilter = $(this).closest('.filter-group').find('.region-dropdown').length > 0;
+                
+                if (isRegionFilter) {
+                    selectedRegions.delete(value);
+                    updateRegionFilter();
+                } else {
+                    selectedPriorities.delete(value);
+                    updatePriorityFilter();
+                }
+                
+                $(this).parent().remove();
+            });
+            
+            function updatePriorityFilter() {
+                let searchTerm = '';
+                if (!selectedPriorities.has('All')) {
+                    const values = Array.from(selectedPriorities);
+                    searchTerm = values.length ? '^(' + values.join('|') + ')$' : '';
+                }
                 
                 table.column(9)  // Priority column
-                    .search(searchTerm, true, false)  // Enable regex search
+                    .search(searchTerm, true, false)
                     .draw();
-            });
+            }
+            
+            function updateRegionFilter() {
+                let searchTerm = '';
+                if (!selectedRegions.has('All')) {
+                    const values = Array.from(selectedRegions);
+                    searchTerm = values.length ? '^(' + values.join('|') + ')$' : '';
+                }
+                
+                table.column(8)  // Region column
+                    .search(searchTerm, true, false)
+                    .draw();
+            }
 
             // Add toggle filters functionality
             $('#toggleFilters').on('click', function() {
