@@ -159,6 +159,9 @@
 
     <script>
         $(document).ready(function() {
+            let selectedPriorities = new Set(['All']);  // Initialize with 'All'
+            let selectedRegions = new Set(['All']);     // Initialize with 'All'
+            
             // Initialize DataTable
             let table = $('#dataTable').DataTable({
                 processing: true,
@@ -198,41 +201,59 @@
                 }
             });
 
-            let selectedPriorities = new Set();
-            let selectedRegions = new Set();
-            
-            // Priority Filter Handler
-            $('.priority-dropdown').on('change', function() {
-                const value = $(this).val();
-                if (!value) return;
+            // Convert select dropdowns to custom dropdowns
+            $('.tag-filter-container').each(function() {
+                const $container = $(this);
+                const $select = $container.find('select');
+                const options = $select.find('option').map(function() {
+                    return {
+                        value: $(this).val(),
+                        text: $(this).text()
+                    };
+                }).get();
                 
-                if (value === 'All') {
-                    if (!selectedPriorities.has('All')) {
-                        selectedPriorities.add('All');
-                        const tag = $(`<div class="priority-tag">
-                            All
-                            <span class="remove">×</span>
-                        </div>`);
-                        tag.insertBefore($(this));
+                // Create custom dropdown
+                const $dropdown = $('<div class="dropdown-menu">');
+                options.forEach(option => {
+                    $dropdown.append(
+                        $('<div class="option">')
+                            .text(option.text)
+                            .data('value', option.value)
+                    );
+                });
+                
+                $container.append($dropdown);
+                $select.hide();
+                
+                // Handle container click
+                $container.on('click', function(e) {
+                    e.stopPropagation();
+                    $('.dropdown-menu').not($dropdown).hide();
+                    $dropdown.toggle();
+                });
+                
+                // Handle option selection
+                $dropdown.on('click', '.option', function(e) {
+                    e.stopPropagation();
+                    const value = $(this).data('value');
+                    const isRegionFilter = $container.closest('.filter-group').find('.region-dropdown').length > 0;
+                    
+                    if (isRegionFilter) {
+                        handleRegionSelection(value, $container);
+                    } else {
+                        handlePrioritySelection(value, $container);
                     }
-                } else if (!selectedPriorities.has(value)) {
-                    selectedPriorities.add(value);
-                    const tag = $(`<div class="priority-tag">
-                        ${value}
-                        <span class="remove">×</span>
-                    </div>`);
-                    tag.insertBefore($(this));
-                }
-                
-                $(this).val('');
-                updatePriorityFilter();
+                    
+                    $dropdown.hide();
+                });
             });
             
-            // Region Filter Handler
-            $('.region-dropdown').on('change', function() {
-                const value = $(this).val();
-                if (!value) return;
-                
+            // Close dropdowns when clicking outside
+            $(document).on('click', function() {
+                $('.dropdown-menu').hide();
+            });
+            
+            function handleRegionSelection(value, $container) {
                 if (value === 'All') {
                     if (!selectedRegions.has('All')) {
                         selectedRegions.add('All');
@@ -240,7 +261,7 @@
                             All
                             <span class="remove">×</span>
                         </div>`);
-                        tag.insertBefore($(this));
+                        tag.insertBefore($container.find('.dropdown-menu'));
                     }
                 } else if (!selectedRegions.has(value)) {
                     selectedRegions.add(value);
@@ -248,22 +269,40 @@
                         ${value}
                         <span class="remove">×</span>
                     </div>`);
-                    tag.insertBefore($(this));
+                    tag.insertBefore($container.find('.dropdown-menu'));
                 }
-                
-                $(this).val('');
                 updateRegionFilter();
-            });
+            }
             
-            // Handle tag removal for both filters
+            function handlePrioritySelection(value, $container) {
+                if (value === 'All') {
+                    if (!selectedPriorities.has('All')) {
+                        selectedPriorities.add('All');
+                        const tag = $(`<div class="priority-tag">
+                            All
+                            <span class="remove">×</span>
+                        </div>`);
+                        tag.insertBefore($container.find('.dropdown-menu'));
+                    }
+                } else if (!selectedPriorities.has(value)) {
+                    selectedPriorities.add(value);
+                    const tag = $(`<div class="priority-tag">
+                        ${value}
+                        <span class="remove">×</span>
+                    </div>`);
+                    tag.insertBefore($container.find('.dropdown-menu'));
+                }
+                updatePriorityFilter();
+            }
+            
+            // Handle tag removal
             $('.tag-filter-container').on('click', '.remove', function(e) {
-                e.stopPropagation(); // Prevent dropdown from opening when removing tag
+                e.stopPropagation();
                 const value = $(this).parent().text().trim().replace('×', '');
                 const isRegionFilter = $(this).closest('.filter-group').find('.region-dropdown').length > 0;
                 
                 if (isRegionFilter) {
                     selectedRegions.delete(value);
-                    // If no tags left, add back "All" tag
                     if (selectedRegions.size === 0) {
                         selectedRegions.add('All');
                         const tag = $(`<div class="priority-tag">
@@ -275,7 +314,6 @@
                     updateRegionFilter();
                 } else {
                     selectedPriorities.delete(value);
-                    // If no tags left, add back "All" tag
                     if (selectedPriorities.size === 0) {
                         selectedPriorities.add('All');
                         const tag = $(`<div class="priority-tag">
