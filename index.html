@@ -52,6 +52,10 @@
         .filters.hidden {
             display: none;
         }
+        #priorityFilter {
+            min-width: 120px;
+            height: auto;
+        }
     </style>
 </head>
 <body>
@@ -72,8 +76,7 @@
         
         <div class="filter-group">
             <label>Priority:</label>
-            <select id="priorityFilter">
-                <option value="">All</option>
+            <select id="priorityFilter" multiple>
                 <option value="High">High</option>
                 <option value="Medium">Medium</option>
                 <option value="Low">Low</option>
@@ -146,10 +149,15 @@
                     .draw();
             });
 
-            // Handle priority filter
+            // Update the priority filter handler for multiple selections
             $('#priorityFilter').on('change', function() {
-                table.column(9)
-                    .search(this.value)
+                let values = $(this).val() || [];  // Get array of selected values
+                let searchTerm = values.length ? 
+                                '^(' + values.join('|') + ')$' : 
+                                '';  // Create regex pattern or empty string
+                
+                table.column(9)  // Priority column
+                    .search(searchTerm, true, false)  // Enable regex search
                     .draw();
             });
 
