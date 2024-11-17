@@ -118,7 +118,6 @@
             <label>Region:</label>
             <div class="tag-filter-container">
                 <select class="filter-select region-dropdown">
-                    <option value="">Select Region...</option>
                     <option value="All">All</option>
                     <option value="North">North</option>
                     <option value="South">South</option>
@@ -132,7 +131,6 @@
             <label>Priority:</label>
             <div class="tag-filter-container">
                 <select class="filter-select priority-dropdown">
-                    <option value="">Select Priority...</option>
                     <option value="All">All</option>
                     <option value="High">High</option>
                     <option value="Medium">Medium</option>
@@ -306,6 +304,32 @@
             
             // Set initial button text
             $('#toggleFilters').text('Hide Filters');
+
+            // Set default "All" tags for both filters on page load
+            function setDefaultAllTags() {
+                // Add "All" tag for Region
+                selectedRegions.add('All');
+                const regionTag = $(`<div class="priority-tag">
+                    All
+                    <span class="remove">×</span>
+                </div>`);
+                regionTag.insertBefore($('.region-dropdown'));
+                
+                // Add "All" tag for Priority
+                selectedPriorities.add('All');
+                const priorityTag = $(`<div class="priority-tag">
+                    All
+                    <span class="remove">×</span>
+                </div>`);
+                priorityTag.insertBefore($('.priority-dropdown'));
+                
+                // Update both filters
+                updateRegionFilter();
+                updatePriorityFilter();
+            }
+
+            // Call this after table initialization
+            setDefaultAllTags();
         });
     </script>
 </body>
