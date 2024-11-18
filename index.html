@@ -365,9 +365,15 @@
                 console.log('Is Region Filter:', isRegionFilter);
                 
                 if (isRegionFilter) {
-                    // Remove from Set and DOM
-                    selectedRegions.delete(value);
+                    // Remove the tag from DOM first
                     $(this).parent().remove();
+                    
+                    // Update the Set based on remaining visible tags
+                    selectedRegions.clear();  // Clear the Set first
+                    $container.find('.priority-tag').each(function() {
+                        const tagValue = $(this).text().trim().replace('×', '');
+                        selectedRegions.add(tagValue);
+                    });
                     
                     console.log('Before update - Selected Regions:', Array.from(selectedRegions));
                     console.log('Remaining DOM tags:', $container.find('.priority-tag').length);
@@ -384,7 +390,7 @@
                         tag.insertBefore($container.find('.dropdown-menu'));
                     }
                     
-                    // Update filter with remaining values
+                    // Build search term from current Set
                     let searchTerm = '';
                     if (!selectedRegions.has('All')) {
                         const remainingValues = Array.from(selectedRegions);
@@ -394,20 +400,24 @@
                     console.log('Search term for filter:', searchTerm || 'empty (showing all)');
                     console.log('Final Selected Regions:', Array.from(selectedRegions));
                     
-                    // Apply filter directly
+                    // Apply filter
                     table.column(8)
                         .search(searchTerm, true, false)
                         .draw();
                     
                 } else {
-                    // Remove from Set and DOM
-                    selectedPriorities.delete(value);
+                    // Similar logic for Priority filter
                     $(this).parent().remove();
+                    
+                    selectedPriorities.clear();
+                    $container.find('.priority-tag').each(function() {
+                        const tagValue = $(this).text().trim().replace('×', '');
+                        selectedPriorities.add(tagValue);
+                    });
                     
                     console.log('Before update - Selected Priorities:', Array.from(selectedPriorities));
                     console.log('Remaining DOM tags:', $container.find('.priority-tag').length);
                     
-                    // If no tags left, add "All" tag
                     if ($container.find('.priority-tag').length === 0) {
                         console.log('No tags left, adding All tag');
                         selectedPriorities.clear();
@@ -419,7 +429,6 @@
                         tag.insertBefore($container.find('.dropdown-menu'));
                     }
                     
-                    // Update filter with remaining values
                     let searchTerm = '';
                     if (!selectedPriorities.has('All')) {
                         const remainingValues = Array.from(selectedPriorities);
@@ -429,7 +438,6 @@
                     console.log('Search term for filter:', searchTerm || 'empty (showing all)');
                     console.log('Final Selected Priorities:', Array.from(selectedPriorities));
                     
-                    // Apply filter directly
                     table.column(9)
                         .search(searchTerm, true, false)
                         .draw();
