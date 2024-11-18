@@ -69,9 +69,10 @@
             display: flex;
             flex-wrap: wrap;
             gap: 5px;
-            align-items: center;
+            align-items: flex-start;
             background-color: white;
-            min-width: 200px;
+            width: 200px;
+            max-width: 200px;
             cursor: pointer;
         }
         
@@ -113,6 +114,9 @@
             display: flex;
             align-items: center;
             gap: 5px;
+            margin: 2px;
+            max-width: calc(100% - 4px);
+            word-break: break-word;
         }
         
         .priority-tag .remove {
@@ -123,13 +127,13 @@
         
         .filter-group {
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             gap: 10px;
+            margin-bottom: 5px;
         }
         
         .filter-group label {
-            font-size: 16px;
-            white-space: nowrap;
+            padding-top: 8px;
         }
     </style>
 </head>
