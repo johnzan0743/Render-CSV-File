@@ -329,15 +329,25 @@
                 const $container = $(this).closest('.tag-filter-container');
                 const isRegionFilter = $container.closest('.filter-group').find('.region-dropdown').length > 0;
                 
+                // Check if this value is already selected
+                const isDuplicate = $container.find('.priority-tag').toArray()
+                    .some(tag => $(tag).text().trim().replace('×', '') === value);
+                
+                // If it's a duplicate, don't add it
+                if (isDuplicate) {
+                    $(this).closest('.dropdown-menu').hide();
+                    return;
+                }
+                
                 // Remove the tag from the Set before adding it again
                 if (isRegionFilter) {
                     if (value !== 'All') {
-                        selectedRegions.delete(value);  // Remove first to ensure clean state
+                        selectedRegions.delete(value);
                     }
                     handleRegionSelection(value, $container);
                 } else {
                     if (value !== 'All') {
-                        selectedPriorities.delete(value);  // Remove first to ensure clean state
+                        selectedPriorities.delete(value);
                     }
                     handlePrioritySelection(value, $container);
                 }
