@@ -360,15 +360,21 @@
                 const $container = $(this).closest('.tag-filter-container');
                 const isRegionFilter = $container.closest('.filter-group').find('.region-dropdown').length > 0;
                 
+                // Remove the tag first
+                $(this).parent().remove();
+                
                 if (isRegionFilter) {
-                    // Remove the value from the Set
-                    selectedRegions.delete(value);
+                    // Handle Region filter
+                    if (value === 'All') {
+                        selectedRegions.delete('All');
+                    } else {
+                        selectedRegions.delete(value);
+                    }
                     
-                    // Remove the tag from DOM
-                    $(this).parent().remove();
-                    
-                    // If no tags left, add "All" tag
-                    if ($container.find('.priority-tag').length === 0) {
+                    // Check remaining tags
+                    const remainingTags = $container.find('.priority-tag');
+                    if (remainingTags.length === 0) {
+                        // If no tags left, add 'All'
                         selectedRegions.clear();
                         selectedRegions.add('All');
                         const tag = $(`<div class="priority-tag">
@@ -376,30 +382,31 @@
                             <span class="remove">×</span>
                         </div>`);
                         tag.insertBefore($container.find('.dropdown-menu'));
-                    }
-                    
-                    // Build search term from remaining tags
-                    let searchTerm = '';
-                    if (!selectedRegions.has('All')) {
-                        const remainingTags = Array.from($container.find('.priority-tag'))
-                            .map(tag => $(tag).text().trim().replace('×', ''));
-                        selectedRegions = new Set(remainingTags); // Update Set with remaining tags
-                        searchTerm = remainingTags.join('|');
-                    }
-                    
-                    // Update the table filter
-                    table.column(8)
-                        .search(searchTerm, true, false)
-                        .draw();
+                        table.column(8).search('').draw();
+                    } else {
+                        // Update filter based on remaining tags
+                        const searchTerms = Array.from(remainingTags)
+                            .map(tag => $(tag).text().trim().replace('×', ''))
+                            .filter(term => term !== 'All');
                         
+                        if (searchTerms.length > 0) {
+                            table.column(8).search(searchTerms.join('|'), true, false).draw();
+                        } else {
+                            table.column(8).search('').draw();
+                        }
+                    }
                 } else {
-                    // Similar logic for Priority filter
-                    selectedPriorities.delete(value);
+                    // Handle Priority filter (similar logic)
+                    if (value === 'All') {
+                        selectedPriorities.delete('All');
+                    } else {
+                        selectedPriorities.delete(value);
+                    }
                     
-                    // Remove the tag from DOM
-                    $(this).parent().remove();
-                    
-                    if ($container.find('.priority-tag').length === 0) {
+                    // Check remaining tags
+                    const remainingTags = $container.find('.priority-tag');
+                    if (remainingTags.length === 0) {
+                        // If no tags left, add 'All'
                         selectedPriorities.clear();
                         selectedPriorities.add('All');
                         const tag = $(`<div class="priority-tag">
@@ -407,66 +414,58 @@
                             <span class="remove">×</span>
                         </div>`);
                         tag.insertBefore($container.find('.dropdown-menu'));
+                        table.column(9).search('').draw();
+                    } else {
+                        // Update filter based on remaining tags
+                        const searchTerms = Array.from(remainingTags)
+                            .map(tag => $(tag).text().trim().replace('×', ''))
+                            .filter(term => term !== 'All');
+                        
+                        if (searchTerms.length > 0) {
+                            table.column(9).search(searchTerms.join('|'), true, false).draw();
+                        } else {
+                            table.column(9).search('').draw();
+                        }
                     }
-                    
-                    let searchTerm = '';
-                    if (!selectedPriorities.has('All')) {
-                        const remainingTags = Array.from($container.find('.priority-tag'))
-                            .map(tag => $(tag).text().trim().replace('×', ''));
-                        selectedPriorities = new Set(remainingTags); // Update Set with remaining tags
-                        searchTerm = remainingTags.join('|');
-                    }
-                    
-                    table.column(9)
-                        .search(searchTerm, true, false)
-                        .draw();
                 }
             });
             
             function updateRegionFilter() {
                 const $container = $('.region-dropdown').closest('.tag-filter-container');
-                if ($container.find('.priority-tag').length === 0) {
-                    selectedRegions.clear();
-                    selectedRegions.add('All');
-                    const tag = $(`<div class="priority-tag">
-                        All
-                        <span class="remove">×</span>
-                    </div>`);
-                    tag.insertBefore($container.find('.dropdown-menu'));
-                }
+                const tags = $container.find('.priority-tag');
                 
-                let searchTerm = '';
-                if (!selectedRegions.has('All')) {
-                    const values = Array.from(selectedRegions);
-                    searchTerm = values.length ? values.join('|') : '';  // Removed the ^( and )$ anchors
+                if (tags.length === 0 || (tags.length === 1 && tags.first().text().trim().replace('×', '') === 'All')) {
+                    table.column(8).search('').draw();
+                } else {
+                    const searchTerms = Array.from(tags)
+                        .map(tag => $(tag).text().trim().replace('×', ''))
+                        .filter(term => term !== 'All');
+                    
+                    if (searchTerms.length > 0) {
+                        table.column(8).search(searchTerms.join('|'), true, false).draw();
+                    } else {
+                        table.column(8).search('').draw();
+                    }
                 }
-                
-                table.column(8)
-                    .search(searchTerm ? searchTerm : '', true, false)  // Use empty string for 'All'
-                    .draw();
             }
             
             function updatePriorityFilter() {
                 const $container = $('.priority-dropdown').closest('.tag-filter-container');
-                if ($container.find('.priority-tag').length === 0) {
-                    selectedPriorities.clear();
-                    selectedPriorities.add('All');
-                    const tag = $(`<div class="priority-tag">
-                        All
-                        <span class="remove">×</span>
-                    </div>`);
-                    tag.insertBefore($container.find('.dropdown-menu'));
-                }
+                const tags = $container.find('.priority-tag');
                 
-                let searchTerm = '';
-                if (!selectedPriorities.has('All')) {
-                    const values = Array.from(selectedPriorities);
-                    searchTerm = values.length ? values.join('|') : '';  // Removed the ^( and )$ anchors
+                if (tags.length === 0 || (tags.length === 1 && tags.first().text().trim().replace('×', '') === 'All')) {
+                    table.column(9).search('').draw();
+                } else {
+                    const searchTerms = Array.from(tags)
+                        .map(tag => $(tag).text().trim().replace('×', ''))
+                        .filter(term => term !== 'All');
+                    
+                    if (searchTerms.length > 0) {
+                        table.column(9).search(searchTerms.join('|'), true, false).draw();
+                    } else {
+                        table.column(9).search('').draw();
+                    }
                 }
-                
-                table.column(9)
-                    .search(searchTerm ? searchTerm : '', true, false)  // Use empty string for 'All'
-                    .draw();
             }
 
             // Add toggle filters functionality
