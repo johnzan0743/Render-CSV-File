@@ -360,13 +360,21 @@
                 const $container = $(this).closest('.tag-filter-container');
                 const isRegionFilter = $container.closest('.filter-group').find('.region-dropdown').length > 0;
                 
+                console.log('=== Tag Removal Debug Info ===');
+                console.log('Removing tag:', value);
+                console.log('Is Region Filter:', isRegionFilter);
+                
                 if (isRegionFilter) {
                     // Remove from Set and DOM
                     selectedRegions.delete(value);
                     $(this).parent().remove();
                     
+                    console.log('Before update - Selected Regions:', Array.from(selectedRegions));
+                    console.log('Remaining DOM tags:', $container.find('.priority-tag').length);
+                    
                     // If no tags left, add "All" tag
                     if ($container.find('.priority-tag').length === 0) {
+                        console.log('No tags left, adding All tag');
                         selectedRegions.clear();
                         selectedRegions.add('All');
                         const tag = $(`<div class="priority-tag">
@@ -383,6 +391,9 @@
                         searchTerm = remainingValues.join('|');
                     }
                     
+                    console.log('Search term for filter:', searchTerm || 'empty (showing all)');
+                    console.log('Final Selected Regions:', Array.from(selectedRegions));
+                    
                     // Apply filter directly
                     table.column(8)
                         .search(searchTerm, true, false)
@@ -393,8 +404,12 @@
                     selectedPriorities.delete(value);
                     $(this).parent().remove();
                     
+                    console.log('Before update - Selected Priorities:', Array.from(selectedPriorities));
+                    console.log('Remaining DOM tags:', $container.find('.priority-tag').length);
+                    
                     // If no tags left, add "All" tag
                     if ($container.find('.priority-tag').length === 0) {
+                        console.log('No tags left, adding All tag');
                         selectedPriorities.clear();
                         selectedPriorities.add('All');
                         const tag = $(`<div class="priority-tag">
@@ -411,11 +426,16 @@
                         searchTerm = remainingValues.join('|');
                     }
                     
+                    console.log('Search term for filter:', searchTerm || 'empty (showing all)');
+                    console.log('Final Selected Priorities:', Array.from(selectedPriorities));
+                    
                     // Apply filter directly
                     table.column(9)
                         .search(searchTerm, true, false)
                         .draw();
                 }
+                
+                console.log('=== End Debug Info ===\n');
             });
             
             function updateRegionFilter() {
