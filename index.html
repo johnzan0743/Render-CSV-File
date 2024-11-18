@@ -135,12 +135,18 @@
         .filter-group label {
             padding-top: 8px;
         }
+        #resetFilters {
+            margin-left: 10px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
     <h1>Data Table with Filters</h1>
     
-    <button id="toggleFilters">Toggle Filters</button>
+    <button id="toggleFilters">Hide Filters</button>
+    <button id="resetFilters">Reset Filters</button>
     <div class="filters">
         <div class="filter-group">
             <label>Region:</label>
@@ -571,6 +577,30 @@
 
             // Call this after table initialization
             setDefaultAllTags();
+
+            // Add reset filters functionality
+            $('#resetFilters').on('click', function() {
+                // Clear search box
+                $('.filters input[type="search"]').val('').trigger('keyup');
+                
+                // Reset Region filter
+                const $regionContainer = $('.region-dropdown').closest('.tag-filter-container');
+                $regionContainer.find('.priority-tag').remove();
+                selectedRegions.clear();
+                selectedRegions.add('All');
+                const regionTag = createTag('All');
+                regionTag.insertBefore($regionContainer.find('.dropdown-menu'));
+                updateRegionFilter();
+                
+                // Reset Priority filter
+                const $priorityContainer = $('.priority-dropdown').closest('.tag-filter-container');
+                $priorityContainer.find('.priority-tag').remove();
+                selectedPriorities.clear();
+                selectedPriorities.add('All');
+                const priorityTag = createTag('All');
+                priorityTag.insertBefore($priorityContainer.find('.dropdown-menu'));
+                updatePriorityFilter();
+            });
         });
     </script>
 </body>
