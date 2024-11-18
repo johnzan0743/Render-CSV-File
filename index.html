@@ -183,8 +183,8 @@
 
     <script>
         $(document).ready(function() {
-            let selectedPriorities = new Set(['All']);  // Initialize with 'All'
-            let selectedRegions = new Set(['All']);     // Initialize with 'All'
+            let selectedPriorities = new Set(['All']);
+            let selectedRegions = new Set(['All']);
             
             // Initialize DataTable
             let table = $('#dataTable').DataTable({
@@ -270,9 +270,16 @@
                 const $container = $(this).closest('.tag-filter-container');
                 const isRegionFilter = $container.closest('.filter-group').find('.region-dropdown').length > 0;
                 
+                // Remove the tag from the Set before adding it again
                 if (isRegionFilter) {
+                    if (value !== 'All') {
+                        selectedRegions.delete(value);  // Remove first to ensure clean state
+                    }
                     handleRegionSelection(value, $container);
                 } else {
+                    if (value !== 'All') {
+                        selectedPriorities.delete(value);  // Remove first to ensure clean state
+                    }
                     handlePrioritySelection(value, $container);
                 }
                 
@@ -292,25 +299,24 @@
             
             function handleRegionSelection(value, $container) {
                 if (value === 'All') {
-                    if (!selectedRegions.has('All')) {
-                        selectedRegions.clear();  // Clear other selections when "All" is selected
-                        selectedRegions.add('All');
-                        $container.find('.priority-tag').remove();  // Remove existing tags
-                        const tag = $(`<div class="priority-tag">
-                            All
-                            <span class="remove">×</span>
-                        </div>`);
-                        tag.insertBefore($container.find('.dropdown-menu'));
-                    }
+                    selectedRegions.clear();
+                    selectedRegions.add('All');
+                    $container.find('.priority-tag').remove();
+                    const tag = $(`<div class="priority-tag">
+                        All
+                        <span class="remove">×</span>
+                    </div>`);
+                    tag.insertBefore($container.find('.dropdown-menu'));
                 } else {
-                    // Remove "All" if it exists when selecting specific region
                     if (selectedRegions.has('All')) {
                         selectedRegions.delete('All');
                         $container.find('.priority-tag:contains("All")').remove();
                     }
                     
-                    if (!selectedRegions.has(value)) {
-                        selectedRegions.add(value);
+                    // Always try to add the tag
+                    selectedRegions.add(value);
+                    const existingTag = $container.find(`.priority-tag:contains('${value}')`);
+                    if (existingTag.length === 0) {  // Only add if it doesn't exist
                         const tag = $(`<div class="priority-tag">
                             ${value}
                             <span class="remove">×</span>
@@ -323,25 +329,24 @@
             
             function handlePrioritySelection(value, $container) {
                 if (value === 'All') {
-                    if (!selectedPriorities.has('All')) {
-                        selectedPriorities.clear();  // Clear other selections when "All" is selected
-                        selectedPriorities.add('All');
-                        $container.find('.priority-tag').remove();  // Remove existing tags
-                        const tag = $(`<div class="priority-tag">
-                            All
-                            <span class="remove">×</span>
-                        </div>`);
-                        tag.insertBefore($container.find('.dropdown-menu'));
-                    }
+                    selectedPriorities.clear();
+                    selectedPriorities.add('All');
+                    $container.find('.priority-tag').remove();
+                    const tag = $(`<div class="priority-tag">
+                        All
+                        <span class="remove">×</span>
+                    </div>`);
+                    tag.insertBefore($container.find('.dropdown-menu'));
                 } else {
-                    // Remove "All" if it exists when selecting specific priority
                     if (selectedPriorities.has('All')) {
                         selectedPriorities.delete('All');
                         $container.find('.priority-tag:contains("All")').remove();
                     }
                     
-                    if (!selectedPriorities.has(value)) {
-                        selectedPriorities.add(value);
+                    // Always try to add the tag
+                    selectedPriorities.add(value);
+                    const existingTag = $container.find(`.priority-tag:contains('${value}')`);
+                    if (existingTag.length === 0) {  // Only add if it doesn't exist
                         const tag = $(`<div class="priority-tag">
                             ${value}
                             <span class="remove">×</span>
