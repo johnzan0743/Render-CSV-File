@@ -361,6 +361,7 @@
                 const isRegionFilter = $container.closest('.filter-group').find('.region-dropdown').length > 0;
                 
                 if (isRegionFilter) {
+                    // Remove from Set and DOM
                     selectedRegions.delete(value);
                     $(this).parent().remove();
                     
@@ -374,8 +375,21 @@
                         </div>`);
                         tag.insertBefore($container.find('.dropdown-menu'));
                     }
-                    updateRegionFilter();
+                    
+                    // Update filter with remaining values
+                    let searchTerm = '';
+                    if (!selectedRegions.has('All')) {
+                        const remainingValues = Array.from(selectedRegions);
+                        searchTerm = remainingValues.join('|');
+                    }
+                    
+                    // Apply filter directly
+                    table.column(8)
+                        .search(searchTerm, true, false)
+                        .draw();
+                    
                 } else {
+                    // Remove from Set and DOM
                     selectedPriorities.delete(value);
                     $(this).parent().remove();
                     
@@ -389,7 +403,18 @@
                         </div>`);
                         tag.insertBefore($container.find('.dropdown-menu'));
                     }
-                    updatePriorityFilter();
+                    
+                    // Update filter with remaining values
+                    let searchTerm = '';
+                    if (!selectedPriorities.has('All')) {
+                        const remainingValues = Array.from(selectedPriorities);
+                        searchTerm = remainingValues.join('|');
+                    }
+                    
+                    // Apply filter directly
+                    table.column(9)
+                        .search(searchTerm, true, false)
+                        .draw();
                 }
             });
             
