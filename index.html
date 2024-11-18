@@ -329,25 +329,45 @@
                 const $container = $(this).closest('.tag-filter-container');
                 const isRegionFilter = $container.closest('.filter-group').find('.region-dropdown').length > 0;
                 
-                // Check if this value is already selected
-                const isDuplicate = $container.find('.priority-tag').toArray()
-                    .some(tag => $(tag).text().trim().replace('×', '') === value);
+                // Get all current tag values in this container
+                const currentTags = new Set(
+                    $container.find('.priority-tag')
+                        .map(function() {
+                            return $(this).text().trim().replace('×', '');
+                        })
+                        .get()
+                );
                 
-                // If it's a duplicate, don't add it
-                if (isDuplicate) {
+                // If value is already in the set, don't add it
+                if (currentTags.has(value)) {
                     $(this).closest('.dropdown-menu').hide();
                     return;
                 }
                 
-                // Remove the tag from the Set before adding it again
                 if (isRegionFilter) {
-                    if (value !== 'All') {
-                        selectedRegions.delete(value);
+                    if (value === 'All') {
+                        // Clear all existing tags
+                        $container.find('.priority-tag').remove();
+                        selectedRegions.clear();
+                        selectedRegions.add('All');
+                    } else {
+                        // Remove 'All' tag if it exists
+                        $container.find('.priority-tag:contains("All")').remove();
+                        selectedRegions.delete('All');
+                        selectedRegions.add(value);
                     }
                     handleRegionSelection(value, $container);
                 } else {
-                    if (value !== 'All') {
-                        selectedPriorities.delete(value);
+                    if (value === 'All') {
+                        // Clear all existing tags
+                        $container.find('.priority-tag').remove();
+                        selectedPriorities.clear();
+                        selectedPriorities.add('All');
+                    } else {
+                        // Remove 'All' tag if it exists
+                        $container.find('.priority-tag:contains("All")').remove();
+                        selectedPriorities.delete('All');
+                        selectedPriorities.add(value);
                     }
                     handlePrioritySelection(value, $container);
                 }
@@ -366,59 +386,29 @@
                 e.stopPropagation();
             });
             
+            // Helper function to create a tag
+            function createTag(value) {
+                return $(`<div class="priority-tag">
+                    ${value}
+                    <span class="remove">×</span>
+                </div>`);
+            }
+
             function handleRegionSelection(value, $container) {
-                if (value === 'All') {
-                    if (!selectedRegions.has('All')) {
-                        selectedRegions.clear();
-                        selectedRegions.add('All');
-                        $container.find('.priority-tag').remove();
-                        const tag = $(`<div class="priority-tag">
-                            All
-                            <span class="remove">×</span>
-                        </div>`);
-                        tag.insertBefore($container.find('.dropdown-menu'));
-                    }
-                } else {
-                    if (selectedRegions.has('All')) {
-                        selectedRegions.delete('All');
-                        $container.find('.priority-tag:contains("All")').remove();
-                    }
-                    
-                    selectedRegions.add(value);
-                    const tag = $(`<div class="priority-tag">
-                        ${value}
-                        <span class="remove">×</span>
-                    </div>`);
-                    tag.insertBefore($container.find('.dropdown-menu'));
-                }
+                // Remove any duplicate tags first
+                $container.find(`.priority-tag:contains("${value}")`).remove();
+                
+                const tag = createTag(value);
+                tag.insertBefore($container.find('.dropdown-menu'));
                 updateRegionFilter();
             }
-            
+
             function handlePrioritySelection(value, $container) {
-                if (value === 'All') {
-                    if (!selectedPriorities.has('All')) {
-                        selectedPriorities.clear();
-                        selectedPriorities.add('All');
-                        $container.find('.priority-tag').remove();
-                        const tag = $(`<div class="priority-tag">
-                            All
-                            <span class="remove">×</span>
-                        </div>`);
-                        tag.insertBefore($container.find('.dropdown-menu'));
-                    }
-                } else {
-                    if (selectedPriorities.has('All')) {
-                        selectedPriorities.delete('All');
-                        $container.find('.priority-tag:contains("All")').remove();
-                    }
-                    
-                    selectedPriorities.add(value);
-                    const tag = $(`<div class="priority-tag">
-                        ${value}
-                        <span class="remove">×</span>
-                    </div>`);
-                    tag.insertBefore($container.find('.dropdown-menu'));
-                }
+                // Remove any duplicate tags first
+                $container.find(`.priority-tag:contains("${value}")`).remove();
+                
+                const tag = createTag(value);
+                tag.insertBefore($container.find('.dropdown-menu'));
                 updatePriorityFilter();
             }
             
