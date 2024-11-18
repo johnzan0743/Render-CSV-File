@@ -360,14 +360,14 @@
                 const $container = $(this).closest('.tag-filter-container');
                 const isRegionFilter = $container.closest('.filter-group').find('.region-dropdown').length > 0;
                 
-                // Remove the clicked tag first
-                $(this).parent().remove();
-                
                 if (isRegionFilter) {
                     // Remove the value from the Set
                     selectedRegions.delete(value);
                     
-                    // If this was the last tag, add "All" tag
+                    // Remove the tag from DOM
+                    $(this).parent().remove();
+                    
+                    // If no tags left, add "All" tag
                     if ($container.find('.priority-tag').length === 0) {
                         selectedRegions.clear();
                         selectedRegions.add('All');
@@ -378,23 +378,27 @@
                         tag.insertBefore($container.find('.dropdown-menu'));
                     }
                     
-                    // Update the filter with current visible tags
+                    // Build search term from remaining tags
                     let searchTerm = '';
                     if (!selectedRegions.has('All')) {
-                        const values = Array.from($container.find('.priority-tag'))
-                            .map(tag => $(tag).text().trim().replace('×', ''))
-                            .filter(value => value !== 'All');
-                        searchTerm = values.length ? values.join('|') : '';
+                        const remainingTags = Array.from($container.find('.priority-tag'))
+                            .map(tag => $(tag).text().trim().replace('×', ''));
+                        selectedRegions = new Set(remainingTags); // Update Set with remaining tags
+                        searchTerm = remainingTags.join('|');
                     }
                     
+                    // Update the table filter
                     table.column(8)
-                        .search(searchTerm ? searchTerm : '', true, false)
+                        .search(searchTerm, true, false)
                         .draw();
+                        
                 } else {
-                    // Remove the value from the Set
+                    // Similar logic for Priority filter
                     selectedPriorities.delete(value);
                     
-                    // If this was the last tag, add "All" tag
+                    // Remove the tag from DOM
+                    $(this).parent().remove();
+                    
                     if ($container.find('.priority-tag').length === 0) {
                         selectedPriorities.clear();
                         selectedPriorities.add('All');
@@ -405,17 +409,16 @@
                         tag.insertBefore($container.find('.dropdown-menu'));
                     }
                     
-                    // Update the filter with current visible tags
                     let searchTerm = '';
                     if (!selectedPriorities.has('All')) {
-                        const values = Array.from($container.find('.priority-tag'))
-                            .map(tag => $(tag).text().trim().replace('×', ''))
-                            .filter(value => value !== 'All');
-                        searchTerm = values.length ? values.join('|') : '';
+                        const remainingTags = Array.from($container.find('.priority-tag'))
+                            .map(tag => $(tag).text().trim().replace('×', ''));
+                        selectedPriorities = new Set(remainingTags); // Update Set with remaining tags
+                        searchTerm = remainingTags.join('|');
                     }
                     
                     table.column(9)
-                        .search(searchTerm ? searchTerm : '', true, false)
+                        .search(searchTerm, true, false)
                         .draw();
                 }
             });
