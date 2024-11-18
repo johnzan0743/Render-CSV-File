@@ -146,11 +146,7 @@
             <label>Region:</label>
             <div class="tag-filter-container">
                 <select class="filter-select region-dropdown">
-                    <option value="All">All</option>
-                    <option value="North">North</option>
-                    <option value="South">South</option>
-                    <option value="East">East</option>
-                    <option value="West">West</option>
+                    <!-- Will be populated dynamically -->
                 </select>
             </div>
         </div>
@@ -159,10 +155,7 @@
             <label>Priority:</label>
             <div class="tag-filter-container">
                 <select class="filter-select priority-dropdown">
-                    <option value="All">All</option>
-                    <option value="High">High</option>
-                    <option value="Medium">Medium</option>
-                    <option value="Low">Low</option>
+                    <!-- Will be populated dynamically -->
                 </select>
             </div>
         </div>
@@ -218,10 +211,41 @@
                             return columns.map(cell => cell.trim().replace(/^"(.*)"$/, '$1'));
                         });
                         
+                        // Get unique regions from the data (column 8 is Region)
+                        const uniqueRegions = [...new Set(data.map(row => row[8]))].sort();
+                        
+                        // Clear existing options
+                        $('.region-dropdown').empty();
+                        
+                        // Add "All" option
+                        $('.region-dropdown').append('<option value="All">All</option>');
+                        
+                        // Add options from data
+                        uniqueRegions.forEach(region => {
+                            if (region) {  // Only add non-empty values
+                                $('.region-dropdown').append(`<option value="${region}">${region}</option>`);
+                            }
+                        });
+                        
+                        // Update the custom dropdown menu
+                        const $regionContainer = $('.region-dropdown').closest('.tag-filter-container');
+                        const $dropdown = $regionContainer.find('.dropdown-menu');
+                        $dropdown.empty();
+                        
+                        // Add options to custom dropdown
+                        $('.region-dropdown option').each(function() {
+                            $dropdown.append(
+                                $('<div class="option">')
+                                    .text($(this).text())
+                                    .data('value', $(this).val())
+                            );
+                        });
+                        
                         table.clear();
                         table.rows.add(data).draw();
                         
                         console.log('Data loaded and drawn:', data.length, 'rows');
+                        console.log('Unique regions:', uniqueRegions);
                     })
                     .fail(function(jqXHR, textStatus, errorThrown) {
                         console.error('Failed to load CSV:', textStatus, errorThrown);
