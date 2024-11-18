@@ -299,60 +299,56 @@
             
             function handleRegionSelection(value, $container) {
                 if (value === 'All') {
-                    selectedRegions.clear();
-                    selectedRegions.add('All');
-                    $container.find('.priority-tag').remove();
-                    const tag = $(`<div class="priority-tag">
-                        All
-                        <span class="remove">×</span>
-                    </div>`);
-                    tag.insertBefore($container.find('.dropdown-menu'));
+                    if (!selectedRegions.has('All')) {
+                        selectedRegions.clear();
+                        selectedRegions.add('All');
+                        $container.find('.priority-tag').remove();
+                        const tag = $(`<div class="priority-tag">
+                            All
+                            <span class="remove">×</span>
+                        </div>`);
+                        tag.insertBefore($container.find('.dropdown-menu'));
+                    }
                 } else {
                     if (selectedRegions.has('All')) {
                         selectedRegions.delete('All');
                         $container.find('.priority-tag:contains("All")').remove();
                     }
                     
-                    // Always try to add the tag
                     selectedRegions.add(value);
-                    const existingTag = $container.find(`.priority-tag:contains('${value}')`);
-                    if (existingTag.length === 0) {  // Only add if it doesn't exist
-                        const tag = $(`<div class="priority-tag">
-                            ${value}
-                            <span class="remove">×</span>
-                        </div>`);
-                        tag.insertBefore($container.find('.dropdown-menu'));
-                    }
+                    const tag = $(`<div class="priority-tag">
+                        ${value}
+                        <span class="remove">×</span>
+                    </div>`);
+                    tag.insertBefore($container.find('.dropdown-menu'));
                 }
                 updateRegionFilter();
             }
             
             function handlePrioritySelection(value, $container) {
                 if (value === 'All') {
-                    selectedPriorities.clear();
-                    selectedPriorities.add('All');
-                    $container.find('.priority-tag').remove();
-                    const tag = $(`<div class="priority-tag">
-                        All
-                        <span class="remove">×</span>
-                    </div>`);
-                    tag.insertBefore($container.find('.dropdown-menu'));
+                    if (!selectedPriorities.has('All')) {
+                        selectedPriorities.clear();
+                        selectedPriorities.add('All');
+                        $container.find('.priority-tag').remove();
+                        const tag = $(`<div class="priority-tag">
+                            All
+                            <span class="remove">×</span>
+                        </div>`);
+                        tag.insertBefore($container.find('.dropdown-menu'));
+                    }
                 } else {
                     if (selectedPriorities.has('All')) {
                         selectedPriorities.delete('All');
                         $container.find('.priority-tag:contains("All")').remove();
                     }
                     
-                    // Always try to add the tag
                     selectedPriorities.add(value);
-                    const existingTag = $container.find(`.priority-tag:contains('${value}')`);
-                    if (existingTag.length === 0) {  // Only add if it doesn't exist
-                        const tag = $(`<div class="priority-tag">
-                            ${value}
-                            <span class="remove">×</span>
-                        </div>`);
-                        tag.insertBefore($container.find('.dropdown-menu'));
-                    }
+                    const tag = $(`<div class="priority-tag">
+                        ${value}
+                        <span class="remove">×</span>
+                    </div>`);
+                    tag.insertBefore($container.find('.dropdown-menu'));
                 }
                 updatePriorityFilter();
             }
@@ -414,20 +410,12 @@
                 
                 let searchTerm = '';
                 if (!selectedRegions.has('All')) {
-                    // Get all currently visible tags and build search term
-                    const values = Array.from($container.find('.priority-tag'))
-                        .map(tag => $(tag).text().trim().replace('×', ''))
-                        .filter(value => value !== 'All');
-                    
-                    // Update the Set to match visible tags
-                    selectedRegions.clear();
-                    values.forEach(value => selectedRegions.add(value));
-                    
-                    searchTerm = values.length ? '^(' + values.join('|') + ')$' : '';
+                    const values = Array.from(selectedRegions);
+                    searchTerm = values.length ? values.join('|') : '';  // Removed the ^( and )$ anchors
                 }
                 
                 table.column(8)
-                    .search(searchTerm, true, false)
+                    .search(searchTerm ? searchTerm : '', true, false)  // Use empty string for 'All'
                     .draw();
             }
             
@@ -445,20 +433,12 @@
                 
                 let searchTerm = '';
                 if (!selectedPriorities.has('All')) {
-                    // Get all currently visible tags and build search term
-                    const values = Array.from($container.find('.priority-tag'))
-                        .map(tag => $(tag).text().trim().replace('×', ''))
-                        .filter(value => value !== 'All');
-                    
-                    // Update the Set to match visible tags
-                    selectedPriorities.clear();
-                    values.forEach(value => selectedPriorities.add(value));
-                    
-                    searchTerm = values.length ? '^(' + values.join('|') + ')$' : '';
+                    const values = Array.from(selectedPriorities);
+                    searchTerm = values.length ? values.join('|') : '';  // Removed the ^( and )$ anchors
                 }
                 
                 table.column(9)
-                    .search(searchTerm, true, false)
+                    .search(searchTerm ? searchTerm : '', true, false)  // Use empty string for 'All'
                     .draw();
             }
 
