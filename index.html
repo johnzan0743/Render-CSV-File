@@ -356,7 +356,7 @@
             // Handle tag removal
             $('.tag-filter-container').on('click', '.remove', function(e) {
                 e.stopPropagation();
-                const value = $(this).parent().text().trim().replace('×', '');
+                const value = $(this).parent().text().trim().replace('×', '').replace(/\n/g, '');  // Remove newlines
                 const $container = $(this).closest('.tag-filter-container');
                 const isRegionFilter = $container.closest('.filter-group').find('.region-dropdown').length > 0;
                 
@@ -369,9 +369,9 @@
                     $(this).parent().remove();
                     
                     // Update the Set based on remaining visible tags
-                    selectedRegions.clear();  // Clear the Set first
+                    selectedRegions.clear();
                     $container.find('.priority-tag').each(function() {
-                        const tagValue = $(this).text().trim().replace('×', '');
+                        const tagValue = $(this).text().trim().replace('×', '').replace(/\n/g, '');  // Remove newlines
                         selectedRegions.add(tagValue);
                     });
                     
@@ -393,7 +393,8 @@
                     // Build search term from current Set
                     let searchTerm = '';
                     if (!selectedRegions.has('All')) {
-                        const remainingValues = Array.from(selectedRegions);
+                        const remainingValues = Array.from(selectedRegions)
+                            .map(value => value.trim().replace(/\n/g, ''));  // Clean values
                         searchTerm = remainingValues.join('|');
                     }
                     
@@ -404,14 +405,13 @@
                     table.column(8)
                         .search(searchTerm, true, false)
                         .draw();
-                    
                 } else {
                     // Similar logic for Priority filter
                     $(this).parent().remove();
                     
                     selectedPriorities.clear();
                     $container.find('.priority-tag').each(function() {
-                        const tagValue = $(this).text().trim().replace('×', '');
+                        const tagValue = $(this).text().trim().replace('×', '').replace(/\n/g, '');  // Remove newlines
                         selectedPriorities.add(tagValue);
                     });
                     
@@ -431,7 +431,8 @@
                     
                     let searchTerm = '';
                     if (!selectedPriorities.has('All')) {
-                        const remainingValues = Array.from(selectedPriorities);
+                        const remainingValues = Array.from(selectedPriorities)
+                            .map(value => value.trim().replace(/\n/g, ''));  // Clean values
                         searchTerm = remainingValues.join('|');
                     }
                     
