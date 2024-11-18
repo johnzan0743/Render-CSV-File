@@ -251,9 +251,43 @@
                 $select.hide();
             });
             
+            // Handle container click to show/hide dropdown
+            $('.tag-filter-container').on('click', function(e) {
+                e.stopPropagation();
+                const $dropdown = $(this).find('.dropdown-menu');
+                
+                // Hide all other dropdowns
+                $('.dropdown-menu').not($dropdown).hide();
+                
+                // Toggle current dropdown
+                $dropdown.toggle();
+            });
+            
+            // Handle option selection
+            $('.dropdown-menu').on('click', '.option', function(e) {
+                e.stopPropagation();
+                const value = $(this).data('value');
+                const $container = $(this).closest('.tag-filter-container');
+                const isRegionFilter = $container.closest('.filter-group').find('.region-dropdown').length > 0;
+                
+                if (isRegionFilter) {
+                    handleRegionSelection(value, $container);
+                } else {
+                    handlePrioritySelection(value, $container);
+                }
+                
+                // Hide dropdown after selection
+                $(this).closest('.dropdown-menu').hide();
+            });
+            
             // Close dropdowns when clicking outside
             $(document).on('click', function() {
                 $('.dropdown-menu').hide();
+            });
+            
+            // Prevent dropdown from closing when clicking inside it
+            $('.dropdown-menu').on('click', function(e) {
+                e.stopPropagation();
             });
             
             function handleRegionSelection(value, $container) {
