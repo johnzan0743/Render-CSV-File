@@ -293,20 +293,30 @@
             function handleRegionSelection(value, $container) {
                 if (value === 'All') {
                     if (!selectedRegions.has('All')) {
+                        selectedRegions.clear();  // Clear other selections when "All" is selected
                         selectedRegions.add('All');
+                        $container.find('.priority-tag').remove();  // Remove existing tags
                         const tag = $(`<div class="priority-tag">
                             All
                             <span class="remove">×</span>
                         </div>`);
                         tag.insertBefore($container.find('.dropdown-menu'));
                     }
-                } else if (!selectedRegions.has(value)) {
-                    selectedRegions.add(value);
-                    const tag = $(`<div class="priority-tag">
-                        ${value}
-                        <span class="remove">×</span>
-                    </div>`);
-                    tag.insertBefore($container.find('.dropdown-menu'));
+                } else {
+                    // Remove "All" if it exists when selecting specific region
+                    if (selectedRegions.has('All')) {
+                        selectedRegions.delete('All');
+                        $container.find('.priority-tag:contains("All")').remove();
+                    }
+                    
+                    if (!selectedRegions.has(value)) {
+                        selectedRegions.add(value);
+                        const tag = $(`<div class="priority-tag">
+                            ${value}
+                            <span class="remove">×</span>
+                        </div>`);
+                        tag.insertBefore($container.find('.dropdown-menu'));
+                    }
                 }
                 updateRegionFilter();
             }
@@ -314,20 +324,30 @@
             function handlePrioritySelection(value, $container) {
                 if (value === 'All') {
                     if (!selectedPriorities.has('All')) {
+                        selectedPriorities.clear();  // Clear other selections when "All" is selected
                         selectedPriorities.add('All');
+                        $container.find('.priority-tag').remove();  // Remove existing tags
                         const tag = $(`<div class="priority-tag">
                             All
                             <span class="remove">×</span>
                         </div>`);
                         tag.insertBefore($container.find('.dropdown-menu'));
                     }
-                } else if (!selectedPriorities.has(value)) {
-                    selectedPriorities.add(value);
-                    const tag = $(`<div class="priority-tag">
-                        ${value}
-                        <span class="remove">×</span>
-                    </div>`);
-                    tag.insertBefore($container.find('.dropdown-menu'));
+                } else {
+                    // Remove "All" if it exists when selecting specific priority
+                    if (selectedPriorities.has('All')) {
+                        selectedPriorities.delete('All');
+                        $container.find('.priority-tag:contains("All")').remove();
+                    }
+                    
+                    if (!selectedPriorities.has(value)) {
+                        selectedPriorities.add(value);
+                        const tag = $(`<div class="priority-tag">
+                            ${value}
+                            <span class="remove">×</span>
+                        </div>`);
+                        tag.insertBefore($container.find('.dropdown-menu'));
+                    }
                 }
                 updatePriorityFilter();
             }
