@@ -211,34 +211,64 @@
                             return columns.map(cell => cell.trim().replace(/^"(.*)"$/, '$1'));
                         });
                         
-                        // Get unique regions from the data (column 8 is Region)
+                        // Get unique values from the data
                         const uniqueRegions = [...new Set(data.map(row => row[8]))].sort();
+                        const uniquePriorities = [...new Set(data.map(row => row[9]))].sort();
                         
-                        // Clear existing options
+                        // Populate Region dropdown
+                        const $regionContainer = $('.region-dropdown').closest('.tag-filter-container');
+                        const $regionDropdown = $regionContainer.find('.dropdown-menu');
+                        
+                        // Clear and populate region options
                         $('.region-dropdown').empty();
+                        $regionDropdown.empty();
                         
-                        // Add "All" option
+                        // Add "All" option for region
                         $('.region-dropdown').append('<option value="All">All</option>');
+                        $regionDropdown.append(
+                            $('<div class="option">')
+                                .text('All')
+                                .data('value', 'All')
+                        );
                         
-                        // Add options from data
+                        // Add region options from data
                         uniqueRegions.forEach(region => {
-                            if (region) {  // Only add non-empty values
+                            if (region) {
                                 $('.region-dropdown').append(`<option value="${region}">${region}</option>`);
+                                $regionDropdown.append(
+                                    $('<div class="option">')
+                                        .text(region)
+                                        .data('value', region)
+                                );
                             }
                         });
                         
-                        // Update the custom dropdown menu
-                        const $regionContainer = $('.region-dropdown').closest('.tag-filter-container');
-                        const $dropdown = $regionContainer.find('.dropdown-menu');
-                        $dropdown.empty();
+                        // Populate Priority dropdown
+                        const $priorityContainer = $('.priority-dropdown').closest('.tag-filter-container');
+                        const $priorityDropdown = $priorityContainer.find('.dropdown-menu');
                         
-                        // Add options to custom dropdown
-                        $('.region-dropdown option').each(function() {
-                            $dropdown.append(
-                                $('<div class="option">')
-                                    .text($(this).text())
-                                    .data('value', $(this).val())
-                            );
+                        // Clear and populate priority options
+                        $('.priority-dropdown').empty();
+                        $priorityDropdown.empty();
+                        
+                        // Add "All" option for priority
+                        $('.priority-dropdown').append('<option value="All">All</option>');
+                        $priorityDropdown.append(
+                            $('<div class="option">')
+                                .text('All')
+                                .data('value', 'All')
+                        );
+                        
+                        // Add priority options from data
+                        uniquePriorities.forEach(priority => {
+                            if (priority) {
+                                $('.priority-dropdown').append(`<option value="${priority}">${priority}</option>`);
+                                $priorityDropdown.append(
+                                    $('<div class="option">')
+                                        .text(priority)
+                                        .data('value', priority)
+                                );
+                            }
                         });
                         
                         table.clear();
@@ -246,6 +276,7 @@
                         
                         console.log('Data loaded and drawn:', data.length, 'rows');
                         console.log('Unique regions:', uniqueRegions);
+                        console.log('Unique priorities:', uniquePriorities);
                     })
                     .fail(function(jqXHR, textStatus, errorThrown) {
                         console.error('Failed to load CSV:', textStatus, errorThrown);
