@@ -361,55 +361,89 @@
             $('.tag-filter-container').on('click', '.remove', function(e) {
                 e.stopPropagation();
                 const value = $(this).parent().text().trim().replace('×', '');
-                const isRegionFilter = $(this).closest('.filter-group').find('.region-dropdown').length > 0;
+                const $container = $(this).closest('.tag-filter-container');
+                const isRegionFilter = $container.closest('.filter-group').find('.region-dropdown').length > 0;
+                
+                // Remove the clicked tag
+                $(this).parent().remove();
                 
                 if (isRegionFilter) {
                     selectedRegions.delete(value);
-                    if (selectedRegions.size === 0) {
+                    // If this was the last tag, add "All" tag
+                    if ($container.find('.priority-tag').length === 0) {
+                        selectedRegions.clear();
                         selectedRegions.add('All');
                         const tag = $(`<div class="priority-tag">
                             All
                             <span class="remove">×</span>
                         </div>`);
-                        tag.insertBefore($(this).closest('.tag-filter-container').find('.dropdown-menu'));
+                        tag.insertBefore($container.find('.dropdown-menu'));
+                        updateRegionFilter();
+                    } else {
+                        updateRegionFilter();
                     }
-                    updateRegionFilter();
                 } else {
                     selectedPriorities.delete(value);
-                    if (selectedPriorities.size === 0) {
+                    // If this was the last tag, add "All" tag
+                    if ($container.find('.priority-tag').length === 0) {
+                        selectedPriorities.clear();
                         selectedPriorities.add('All');
                         const tag = $(`<div class="priority-tag">
                             All
                             <span class="remove">×</span>
                         </div>`);
-                        tag.insertBefore($(this).closest('.tag-filter-container').find('.dropdown-menu'));
+                        tag.insertBefore($container.find('.dropdown-menu'));
+                        updatePriorityFilter();
+                    } else {
+                        updatePriorityFilter();
                     }
-                    updatePriorityFilter();
                 }
-                
-                $(this).parent().remove();
             });
             
-            function updatePriorityFilter() {
-                let searchTerm = '';
-                if (!selectedPriorities.has('All')) {
-                    const values = Array.from(selectedPriorities);
-                    searchTerm = values.length ? '^(' + values.join('|') + ')$' : '';
+            function updateRegionFilter() {
+                // If no tags present, add "All" tag
+                const $container = $('.region-dropdown').closest('.tag-filter-container');
+                if ($container.find('.priority-tag').length === 0) {
+                    selectedRegions.clear();
+                    selectedRegions.add('All');
+                    const tag = $(`<div class="priority-tag">
+                        All
+                        <span class="remove">×</span>
+                    </div>`);
+                    tag.insertBefore($container.find('.dropdown-menu'));
                 }
                 
-                table.column(9)  // Priority column
-                    .search(searchTerm, true, false)
-                    .draw();
-            }
-            
-            function updateRegionFilter() {
                 let searchTerm = '';
                 if (!selectedRegions.has('All')) {
                     const values = Array.from(selectedRegions);
                     searchTerm = values.length ? '^(' + values.join('|') + ')$' : '';
                 }
                 
-                table.column(8)  // Region column
+                table.column(8)
+                    .search(searchTerm, true, false)
+                    .draw();
+            }
+            
+            function updatePriorityFilter() {
+                // If no tags present, add "All" tag
+                const $container = $('.priority-dropdown').closest('.tag-filter-container');
+                if ($container.find('.priority-tag').length === 0) {
+                    selectedPriorities.clear();
+                    selectedPriorities.add('All');
+                    const tag = $(`<div class="priority-tag">
+                        All
+                        <span class="remove">×</span>
+                    </div>`);
+                    tag.insertBefore($container.find('.dropdown-menu'));
+                }
+                
+                let searchTerm = '';
+                if (!selectedPriorities.has('All')) {
+                    const values = Array.from(selectedPriorities);
+                    searchTerm = values.length ? '^(' + values.join('|') + ')$' : '';
+                }
+                
+                table.column(9)
                     .search(searchTerm, true, false)
                     .draw();
             }
