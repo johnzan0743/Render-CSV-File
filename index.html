@@ -360,7 +360,7 @@
                 const $container = $(this).closest('.tag-filter-container');
                 const isRegionFilter = $container.closest('.filter-group').find('.region-dropdown').length > 0;
                 
-                // Remove the clicked tag
+                // Remove the clicked tag first
                 $(this).parent().remove();
                 
                 if (isRegionFilter) {
@@ -377,7 +377,19 @@
                         </div>`);
                         tag.insertBefore($container.find('.dropdown-menu'));
                     }
-                    updateRegionFilter();
+                    
+                    // Update the filter with current visible tags
+                    let searchTerm = '';
+                    if (!selectedRegions.has('All')) {
+                        const values = Array.from($container.find('.priority-tag'))
+                            .map(tag => $(tag).text().trim().replace('×', ''))
+                            .filter(value => value !== 'All');
+                        searchTerm = values.length ? values.join('|') : '';
+                    }
+                    
+                    table.column(8)
+                        .search(searchTerm ? searchTerm : '', true, false)
+                        .draw();
                 } else {
                     // Remove the value from the Set
                     selectedPriorities.delete(value);
@@ -392,7 +404,19 @@
                         </div>`);
                         tag.insertBefore($container.find('.dropdown-menu'));
                     }
-                    updatePriorityFilter();
+                    
+                    // Update the filter with current visible tags
+                    let searchTerm = '';
+                    if (!selectedPriorities.has('All')) {
+                        const values = Array.from($container.find('.priority-tag'))
+                            .map(tag => $(tag).text().trim().replace('×', ''))
+                            .filter(value => value !== 'All');
+                        searchTerm = values.length ? values.join('|') : '';
+                    }
+                    
+                    table.column(9)
+                        .search(searchTerm ? searchTerm : '', true, false)
+                        .draw();
                 }
             });
             
