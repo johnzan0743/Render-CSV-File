@@ -62,7 +62,7 @@ df['Primary Assignment Group'] = [generate_assignment_group() for _ in range(len
 df['Monitor Name'] = [generate_monitor_name() for _ in range(len(df))]
 
 # Save to CSV file
-df.to_csv('large_dataset.csv', index=False, quoting=1)
+df.to_csv('large_dataset.csv', index=False)
 
 # Print first 5 rows as preview
 print(df.head())
