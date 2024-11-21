@@ -141,6 +141,20 @@
             padding: 5px 10px;
             cursor: pointer;
         }
+        
+        #submitFilters {
+            padding: 8px 16px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        #submitFilters:hover {
+            background-color: #0056b3;
+        }
     </style>
 </head>
 <body>
@@ -166,6 +180,13 @@
                 </select>
             </div>
         </div>
+
+        <div class="filter-group">
+            <label>Search:</label>
+            <input type="search" class="form-control" id="searchInput">
+        </div>
+
+        <button id="submitFilters" class="btn btn-primary">Apply Filters</button>
     </div>
 
     <table id="dataTable" class="display">
@@ -203,12 +224,12 @@
                         // Add search box to filters section
                         $('<div class="filter-group">')
                             .append('<label>Search:</label>')
-                            .append($('<input type="search" class="form-control">'))
+                            .append($('<input type="search" class="form-control" id="searchInput">'))
                             .appendTo('.filters');
 
-                        // Bind search functionality
-                        $('.filters input[type="search"]').on('keyup', function() {
-                            table.search(this.value).draw();
+                        // Add submit button handler
+                        $('#submitFilters').on('click', function() {
+                            applyAllFilters();
                         });
 
                         // Load CSV file using PapaParse
@@ -588,8 +609,8 @@
 
                 // Add reset filters functionality
                 $('#resetFilters').on('click', function() {
-                    // Clear search box
-                    $('.filters input[type="search"]').val('').trigger('keyup');
+                    // Clear search input
+                    $('#searchInput').val('');
                     
                     // Reset Region filter
                     const $regionContainer = $('.region-dropdown').closest('.tag-filter-container');
@@ -598,7 +619,6 @@
                     selectedRegions.add('All');
                     const regionTag = createTag('All');
                     regionTag.insertBefore($regionContainer.find('.dropdown-menu'));
-                    updateRegionFilter();
                     
                     // Reset Priority filter
                     const $priorityContainer = $('.priority-dropdown').closest('.tag-filter-container');
@@ -607,8 +627,41 @@
                     selectedPriorities.add('All');
                     const priorityTag = createTag('All');
                     priorityTag.insertBefore($priorityContainer.find('.dropdown-menu'));
-                    updatePriorityFilter();
+                    
+                    // Apply reset filters
+                    applyAllFilters();
                 });
+
+                // Add new function to handle all filters
+                function applyAllFilters() {
+                    // Get search term
+                    const searchTerm = $('#searchInput').val();
+
+                    // Get region filter
+                    let regionTerm = '';
+                    if (!selectedRegions.has('All')) {
+                        regionTerm = Array.from(selectedRegions).join('|');
+                    }
+
+                    // Get priority filter
+                    let priorityTerm = '';
+                    if (!selectedPriorities.has('All')) {
+                        priorityTerm = Array.from(selectedPriorities).join('|');
+                    }
+
+                    // Apply all filters at once
+                    table
+                        .search(searchTerm) // Global search
+                        .column('Region:name').search(regionTerm, true, false) // Region filter
+                        .column('Priority:name').search(priorityTerm, true, false) // Priority filter
+                        .draw(); // Redraw table once
+
+                    console.log('Filters applied:', {
+                        search: searchTerm,
+                        region: regionTerm,
+                        priority: priorityTerm
+                    });
+                }
             });
         });
     </script>
