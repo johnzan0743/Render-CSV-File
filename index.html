@@ -205,8 +205,10 @@
             // Load CSV file and get headers
             $.get('large_dataset.csv', function(csvData) {
                 // Get the first line of CSV which contains headers
-                const headers = csvData.split('\n')[0].split(',')
-                    .map(header => header.trim().replace(/"/g, '')); // Remove quotes and trim whitespace
+                const headers = csvData.split('\n')[0]
+                    .match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g)
+                    .map(header => header.trim().replace(/^"|"$/g, ''))
+                    .filter(header => header && header.trim() !== '' && header !== '""');  // Filter out empty headers and quoted empty strings
                 
                 // Create header columns
                 const headerRow = $('#headerRow');
