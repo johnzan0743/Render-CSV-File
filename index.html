@@ -221,12 +221,6 @@
                     order: [[0, 'asc']],
                     dom: 'lrtip',
                     initComplete: function() {
-                        // Add search box to filters section
-                        $('<div class="filter-group">')
-                            .append('<label>Search:</label>')
-                            .append($('<input type="search" class="form-control" id="searchInput">'))
-                            .appendTo('.filters');
-
                         // Add submit button handler
                         $('#submitFilters').on('click', function() {
                             applyAllFilters();
