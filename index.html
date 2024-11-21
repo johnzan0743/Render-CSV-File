@@ -268,6 +268,23 @@
                             .draw();
                     }
 
+                    // Move these functions outside of initComplete but inside Papa.parse callback
+                    // Add after the applyAllFilters function and before DataTable initialization:
+
+                    function handleRegionSelection(value, $container, table) {
+                        $container.find(`.priority-tag:contains("${value}")`).remove();
+                        const tag = createTag(value);
+                        tag.insertBefore($container.find('.dropdown-menu'));
+                        updateRegionFilter(table);
+                    }
+
+                    function handlePrioritySelection(value, $container, table) {
+                        $container.find(`.priority-tag:contains("${value}")`).remove();
+                        const tag = createTag(value);
+                        tag.insertBefore($container.find('.dropdown-menu'));
+                        updatePriorityFilter(table);
+                    }
+
                     // Then initialize the DataTable
                     let table = $('#dataTable').DataTable({
                         processing: true,
@@ -283,21 +300,6 @@
                             $('#submitFilters').on('click', function() {
                                 applyAllFilters(api);
                             });
-
-                            // Setup event handlers that need table reference
-                            function handleRegionSelection(value, $container) {
-                                $container.find(`.priority-tag:contains("${value}")`).remove();
-                                const tag = createTag(value);
-                                tag.insertBefore($container.find('.dropdown-menu'));
-                                updateRegionFilter(api);
-                            }
-
-                            function handlePrioritySelection(value, $container) {
-                                $container.find(`.priority-tag:contains("${value}")`).remove();
-                                const tag = createTag(value);
-                                tag.insertBefore($container.find('.dropdown-menu'));
-                                updatePriorityFilter(api);
-                            }
 
                             // Set default tags
                             function setDefaultAllTags() {
@@ -433,30 +435,26 @@
                         
                         if (isRegionFilter) {
                             if (value === 'All') {
-                                // Clear all existing tags
                                 $container.find('.priority-tag').remove();
                                 selectedRegions.clear();
                                 selectedRegions.add('All');
                             } else {
-                                // Remove 'All' tag if it exists
                                 $container.find('.priority-tag:contains("All")').remove();
                                 selectedRegions.delete('All');
                                 selectedRegions.add(value);
                             }
-                            handleRegionSelection(value, $container);
+                            handleRegionSelection(value, $container, api);
                         } else {
                             if (value === 'All') {
-                                // Clear all existing tags
                                 $container.find('.priority-tag').remove();
                                 selectedPriorities.clear();
                                 selectedPriorities.add('All');
                             } else {
-                                // Remove 'All' tag if it exists
                                 $container.find('.priority-tag:contains("All")').remove();
                                 selectedPriorities.delete('All');
                                 selectedPriorities.add(value);
                             }
-                            handlePrioritySelection(value, $container);
+                            handlePrioritySelection(value, $container, api);
                         }
                         
                         // Hide dropdown after selection
@@ -530,7 +528,7 @@
                             console.log('Final Selected Regions:', Array.from(selectedRegions));
                             
                             // Apply filter
-                            table.column(8)
+                            api.column(8)
                                 .search(searchTerm, true, false)
                                 .draw();
                         } else {
@@ -567,7 +565,7 @@
                             console.log('Search term for filter:', searchTerm || 'empty (showing all)');
                             console.log('Final Selected Priorities:', Array.from(selectedPriorities));
                             
-                            table.column(9)
+                            api.column(9)
                                 .search(searchTerm, true, false)
                                 .draw();
                         }
