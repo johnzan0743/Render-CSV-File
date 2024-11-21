@@ -18,6 +18,7 @@
     <script type="text/javascript" src="https://cdn.datatables.net/select/1.7.0/js/dataTables.select.min.js"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/datetime/1.5.1/js/dataTables.dateTime.min.js"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.2/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
     <style>
         body {
@@ -210,85 +211,89 @@
                             table.search(this.value).draw();
                         });
 
-                        // Load CSV file using jQuery
-                        $.get('./large_dataset.csv', function(csvData) {
-                            const rows = csvData.split(/\r?\n/)
-                                .filter(row => row.trim().length > 0);
-                            
-                            const data = rows.slice(1).map(row => {
-                                const columns = row.split(',');
-                                return columns.map(cell => cell.trim().replace(/^"(.*)"$/, '$1'));
-                            });
-                            
-                            // Get unique values from the data
-                            const uniqueRegions = [...new Set(data.map(row => row[8]))].sort();
-                            const uniquePriorities = [...new Set(data.map(row => row[9]))].sort();
-                            
-                            // Populate Region dropdown
-                            const $regionContainer = $('.region-dropdown').closest('.tag-filter-container');
-                            const $regionDropdown = $regionContainer.find('.dropdown-menu');
-                            
-                            // Clear and populate region options
-                            $('.region-dropdown').empty();
-                            $regionDropdown.empty();
-                            
-                            // Add "All" option for region
-                            $('.region-dropdown').append('<option value="All">All</option>');
-                            $regionDropdown.append(
-                                $('<div class="option">')
-                                    .text('All')
-                                    .data('value', 'All')
-                            );
-                            
-                            // Add region options from data
-                            uniqueRegions.forEach(region => {
-                                if (region) {
-                                    $('.region-dropdown').append(`<option value="${region}">${region}</option>`);
-                                    $regionDropdown.append(
-                                        $('<div class="option">')
-                                            .text(region)
-                                            .data('value', region)
-                                    );
+                        // Load CSV file using PapaParse
+                        Papa.parse('./large_dataset.csv', {
+                            download: true,
+                            header: false,
+                            complete: function(results) {
+                                if (results.errors.length) {
+                                    console.error('Error parsing CSV:', results.errors);
+                                    return;
                                 }
-                            });
-                            
-                            // Populate Priority dropdown
-                            const $priorityContainer = $('.priority-dropdown').closest('.tag-filter-container');
-                            const $priorityDropdown = $priorityContainer.find('.dropdown-menu');
-                            
-                            // Clear and populate priority options
-                            $('.priority-dropdown').empty();
-                            $priorityDropdown.empty();
-                            
-                            // Add "All" option for priority
-                            $('.priority-dropdown').append('<option value="All">All</option>');
-                            $priorityDropdown.append(
-                                $('<div class="option">')
-                                    .text('All')
-                                    .data('value', 'All')
-                            );
-                            
-                            // Add priority options from data
-                            uniquePriorities.forEach(priority => {
-                                if (priority) {
-                                    $('.priority-dropdown').append(`<option value="${priority}">${priority}</option>`);
-                                    $priorityDropdown.append(
-                                        $('<div class="option">')
-                                            .text(priority)
-                                            .data('value', priority)
-                                    );
-                                }
-                            });
-                            
-                            table.clear();
-                            table.rows.add(data).draw();
-                            
-                            console.log('Data loaded and drawn:', data.length, 'rows');
-                            console.log('Unique regions:', uniqueRegions);
-                            console.log('Unique priorities:', uniquePriorities);
-                        })
-                        .fail(function(jqXHR, textStatus, errorThrown) {
-                            console.error('Failed to load CSV:', textStatus, errorThrown);
+
+                                const data = results.data.slice(1)  // Skip header row
+                                    .filter(row => row.length > 1); // Filter out empty rows
+                                
+                                // Get unique values from the data
+                                const uniqueRegions = [...new Set(data.map(row => row[8]))].sort();
+                                const uniquePriorities = [...new Set(data.map(row => row[9]))].sort();
+                                
+                                // Populate Region dropdown
+                                const $regionContainer = $('.region-dropdown').closest('.tag-filter-container');
+                                const $regionDropdown = $regionContainer.find('.dropdown-menu');
+                                
+                                // Clear and populate region options
+                                $('.region-dropdown').empty();
+                                $regionDropdown.empty();
+                                
+                                // Add "All" option for region
+                                $('.region-dropdown').append('<option value="All">All</option>');
+                                $regionDropdown.append(
+                                    $('<div class="option">')
+                                        .text('All')
+                                        .data('value', 'All')
+                                );
+                                
+                                // Add region options from data
+                                uniqueRegions.forEach(region => {
+                                    if (region) {
+                                        $('.region-dropdown').append(`<option value="${region}">${region}</option>`);
+                                        $regionDropdown.append(
+                                            $('<div class="option">')
+                                                .text(region)
+                                                .data('value', region)
+                                        );
+                                    }
+                                });
+                                
+                                // Populate Priority dropdown
+                                const $priorityContainer = $('.priority-dropdown').closest('.tag-filter-container');
+                                const $priorityDropdown = $priorityContainer.find('.dropdown-menu');
+                                
+                                // Clear and populate priority options
+                                $('.priority-dropdown').empty();
+                                $priorityDropdown.empty();
+                                
+                                // Add "All" option for priority
+                                $('.priority-dropdown').append('<option value="All">All</option>');
+                                $priorityDropdown.append(
+                                    $('<div class="option">')
+                                        .text('All')
+                                        .data('value', 'All')
+                                );
+                                
+                                // Add priority options from data
+                                uniquePriorities.forEach(priority => {
+                                    if (priority) {
+                                        $('.priority-dropdown').append(`<option value="${priority}">${priority}</option>`);
+                                        $priorityDropdown.append(
+                                            $('<div class="option">')
+                                                .text(priority)
+                                                .data('value', priority)
+                                        );
+                                    }
+                                });
+                                
+                                table.clear();
+                                table.rows.add(data).draw();
+                                
+                                console.log('Data loaded and drawn:', data.length, 'rows');
+                                console.log('Unique regions:', uniqueRegions);
+                                console.log('Unique priorities:', uniquePriorities);
+                            },
+                            error: function(error) {
+                                console.error('Error loading CSV:', error);
+                            }
                         });
                     }
                 });
