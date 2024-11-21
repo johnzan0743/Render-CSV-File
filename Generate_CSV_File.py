@@ -29,38 +29,6 @@ data = {
 # Create DataFrame
 df = pd.DataFrame(data)
 
-def generate_service_offering():
-    offerings = [
-        "Cloud Services, Infrastructure",
-        "Network, Security & Firewall",
-        "Database, Storage & Backup",
-        "Application Monitoring, Performance",
-        "DevOps Tools, CI/CD Pipeline"
-    ]
-    return random.choice(offerings)
-
-def generate_assignment_group():
-    groups = [
-        "Cloud Ops Team, APAC",
-        "Network Security, Global",
-        "Database Admin, Americas",
-        "App Support, EMEA",
-        "Infrastructure, Operations"
-    ]
-    return random.choice(groups)
-
-def generate_monitor_name():
-    services = ["CPU", "Memory", "Disk", "Network", "Application"]
-    actions = ["Usage", "Performance", "Availability", "Response", "Latency"]
-    locations = ["US-East", "EU-West", "APAC-South", "Global"]
-    
-    return f"{random.choice(services)} {random.choice(actions)}, {random.choice(locations)}"
-
-# Add new columns with random data
-df['Service Offering'] = [generate_service_offering() for _ in range(len(df))]
-df['Primary Assignment Group'] = [generate_assignment_group() for _ in range(len(df))]
-df['Monitor Name'] = [generate_monitor_name() for _ in range(len(df))]
-
 # Save to CSV file
 df.to_csv('large_dataset.csv', index=False)
 
