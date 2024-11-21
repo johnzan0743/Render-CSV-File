@@ -184,15 +184,23 @@
             // Parse CSV file using PapaParse
             Papa.parse('large_dataset.csv', {
                 download: true,
-                header: true, // This tells PapaParse to parse headers
+                header: true,
+                delimiter: ",",
+                quoteChar: '"',
+                skipEmptyLines: true,
                 complete: function(results) {
                     if (results.errors.length) {
                         console.error('Error parsing CSV:', results.errors);
                         return;
                     }
 
+                    // Filter out any rows that don't have all fields
+                    const validData = results.data.filter(row => {
+                        return Object.keys(row).length === Object.keys(results.data[0]).length;
+                    });
+
                     // Get headers from the parsed data
-                    const headers = Object.keys(results.data[0]);
+                    const headers = Object.keys(validData[0]);
                     
                     // Create header columns
                     const headerRow = $('#headerRow');
@@ -206,7 +214,7 @@
                         pageLength: 100,
                         order: [[0, 'asc']],
                         dom: 'lrtip',
-                        data: results.data,
+                        data: validData,
                         columns: headers.map(header => ({ data: header })),
                         initComplete: function() {
                             // Add search box to filters section
@@ -221,8 +229,8 @@
                             });
 
                             // Get unique values for filters
-                            const uniqueRegions = [...new Set(results.data.map(row => row.Region))].sort();
-                            const uniquePriorities = [...new Set(results.data.map(row => row.Priority))].sort();
+                            const uniqueRegions = [...new Set(validData.map(row => row.Region))].sort();
+                            const uniquePriorities = [...new Set(validData.map(row => row.Priority))].sort();
                             
                             // Populate Region dropdown
                             const $regionContainer = $('.region-dropdown').closest('.tag-filter-container');
@@ -283,7 +291,7 @@
                             // Set default "All" tags
                             setDefaultAllTags();
                             
-                            console.log('Data loaded and drawn:', results.data.length, 'rows');
+                            console.log('Data loaded and drawn:', validData.length, 'rows');
                             console.log('Headers:', headers);
                             console.log('Unique regions:', uniqueRegions);
                             console.log('Unique priorities:', uniquePriorities);
