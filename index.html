@@ -316,8 +316,58 @@
                             // Initialize filters
                             setDefaultAllTags();
                             
-                            // Rest of your initialization code...
-                            // [Keep the dropdown population code]
+                            // Get unique values from the data
+                            const data = results.data.slice(1).filter(row => row.length > 1);
+                            const uniqueRegions = [...new Set(data.map(row => row[8]))].sort();
+                            const uniquePriorities = [...new Set(data.map(row => row[9]))].sort();
+
+                            // Populate Region dropdown
+                            const $regionContainer = $('.region-dropdown').closest('.tag-filter-container');
+                            const $regionDropdown = $('<div class="dropdown-menu">');
+
+                            // Add "All" option for region
+                            $regionDropdown.append(
+                                $('<div class="option">')
+                                    .text('All')
+                                    .data('value', 'All')
+                            );
+
+                            // Add region options from data
+                            uniqueRegions.forEach(region => {
+                                if (region) {
+                                    $regionDropdown.append(
+                                        $('<div class="option">')
+                                            .text(region)
+                                            .data('value', region)
+                                    );
+                                }
+                            });
+
+                            $regionContainer.append($regionDropdown);
+
+                            // Populate Priority dropdown
+                            const $priorityContainer = $('.priority-dropdown').closest('.tag-filter-container');
+                            const $priorityDropdown = $('<div class="dropdown-menu">');
+
+                            // Add "All" option for priority
+                            $priorityDropdown.append(
+                                $('<div class="option">')
+                                    .text('All')
+                                    .data('value', 'All')
+                            );
+
+                            // Add priority options from data
+                            uniquePriorities.forEach(priority => {
+                                if (priority) {
+                                    $priorityDropdown.append(
+                                        $('<div class="option">')
+                                            .text(priority)
+                                            .data('value', priority)
+                                    );
+                                }
+                            });
+
+                            $priorityContainer.append($priorityDropdown);
                         }
                     });
 
@@ -556,8 +606,8 @@
                         const priorityTag = createTag('All');
                         priorityTag.insertBefore($priorityContainer.find('.dropdown-menu'));
                         
-                        // Apply reset filters
-                        applyAllFilters(table.api());
+                        // Apply reset filters using api reference
+                        applyAllFilters(api);
                     });
                 }
             });
