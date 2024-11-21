@@ -230,6 +230,7 @@
                         order: [[0, 'asc']],
                         dom: 'lrtip',
                         data: results.data.slice(1).filter(row => row.length > 1), // Skip header row and empty rows
+                        columns: headers.map(header => ({ title: header })),
                         initComplete: function() {
                             // Add submit button handler
                             $('#submitFilters').on('click', function() {
@@ -303,6 +304,55 @@
                             console.log('Data loaded and drawn:', data.length, 'rows');
                             console.log('Unique regions:', uniqueRegions);
                             console.log('Unique priorities:', uniquePriorities);
+
+                            // Move all the function definitions here
+                            function updateRegionFilter() {
+                                let searchTerm = '';
+                                if (selectedRegions.has('All')) {
+                                    searchTerm = '';
+                                } else {
+                                    const values = Array.from(selectedRegions);
+                                    searchTerm = values.join('|');
+                                }
+                                table.column(8)
+                                    .search(searchTerm, true, false)
+                                    .draw();
+                            }
+
+                            function updatePriorityFilter() {
+                                let searchTerm = '';
+                                if (selectedPriorities.has('All')) {
+                                    searchTerm = '';
+                                } else {
+                                    const values = Array.from(selectedPriorities);
+                                    searchTerm = values.join('|');
+                                }
+                                table.column(9)
+                                    .search(searchTerm, true, false)
+                                    .draw();
+                            }
+
+                            function applyAllFilters() {
+                                const searchTerm = $('#searchInput').val();
+                                let regionTerm = '';
+                                if (!selectedRegions.has('All')) {
+                                    regionTerm = Array.from(selectedRegions).join('|');
+                                }
+                                let priorityTerm = '';
+                                if (!selectedPriorities.has('All')) {
+                                    priorityTerm = Array.from(selectedPriorities).join('|');
+                                }
+
+                                table
+                                    .search(searchTerm)
+                                    .column(8).search(regionTerm, true, false)
+                                    .column(9).search(priorityTerm, true, false)
+                                    .draw();
+                            }
+
+                            // Set up event handlers after table is initialized
+                            setupEventHandlers();
+                            setDefaultAllTags();
                         }
                     });
 
@@ -528,36 +578,6 @@
                         console.log('=== End Debug Info ===\n');
                     });
                     
-                    function updateRegionFilter() {
-                        let searchTerm = '';
-                        
-                        if (selectedRegions.has('All')) {
-                            searchTerm = '';
-                        } else {
-                            const values = Array.from(selectedRegions);
-                            searchTerm = values.join('|');
-                        }
-                        
-                        table.column(8)
-                            .search(searchTerm, true, false)
-                            .draw();
-                    }
-                    
-                    function updatePriorityFilter() {
-                        let searchTerm = '';
-                        
-                        if (selectedPriorities.has('All')) {
-                            searchTerm = '';
-                        } else {
-                            const values = Array.from(selectedPriorities);
-                            searchTerm = values.join('|');
-                        }
-                        
-                        table.column(9)
-                            .search(searchTerm, true, false)
-                            .draw();
-                    }
-
                     // Add toggle filters functionality
                     $('#toggleFilters').on('click', function() {
                         $('.filters').toggleClass('hidden');
@@ -619,35 +639,10 @@
                         applyAllFilters();
                     });
 
-                    // Add new function to handle all filters
-                    function applyAllFilters() {
-                        // Get search term
-                        const searchTerm = $('#searchInput').val();
-
-                        // Get region filter
-                        let regionTerm = '';
-                        if (!selectedRegions.has('All')) {
-                            regionTerm = Array.from(selectedRegions).join('|');
-                        }
-
-                        // Get priority filter
-                        let priorityTerm = '';
-                        if (!selectedPriorities.has('All')) {
-                            priorityTerm = Array.from(selectedPriorities).join('|');
-                        }
-
-                        // Apply all filters at once
-                        table
-                            .search(searchTerm) // Global search
-                            .column('Region:name').search(regionTerm, true, false) // Region filter
-                            .column('Priority:name').search(priorityTerm, true, false) // Priority filter
-                            .draw(); // Redraw table once
-
-                        console.log('Filters applied:', {
-                            search: searchTerm,
-                            region: regionTerm,
-                            priority: priorityTerm
-                        });
+                    // Move the event handler setup into a separate function
+                    function setupEventHandlers() {
+                        // [Keep existing event handler code for dropdowns, tags, etc.]
+                        // Make sure to use the 'table' variable inside these handlers
                     }
                 }
             });
