@@ -689,6 +689,14 @@
                         priority: priorityTerm
                     });
                 }
+
+                // Add this after the DataTable initialization
+                $('#searchInput').on('keypress', function(e) {
+                    if (e.which === 13) { // 13 is the Enter key code
+                        e.preventDefault(); // Prevent default form submission
+                        $('#submitFilters').click(); // Trigger the Apply Filters button
+                    }
+                });
             });
         });
     </script>
