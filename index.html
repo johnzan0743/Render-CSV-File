@@ -202,6 +202,16 @@
             let selectedPriorities = new Set(['All']);
             let selectedRegions = new Set(['All']);
             
+            // Add this mapping near the top of your script
+            const categoryColors = {
+                'A': '#ffcdd2', // light red
+                'B': '#bbdefb', // light blue
+                'C': '#c8e6c9', // light green
+                'D': '#fff9c4', // light yellow
+                'E': '#e1bee7'  // light purple
+                // Add more categories and colors as needed
+            };
+            
             // Load CSV file and get headers
             $.get('large_dataset.csv', function(csvData) {
                 // Get headers from CSV and filter out empty ones
@@ -222,6 +232,27 @@
                     pageLength: 100,
                     order: [[0, 'asc']],
                     dom: 'lrtip',
+                    columns: headers.map((header, index) => {
+                        if (header === 'Category') {
+                            return {
+                                title: header,
+                                name: header,
+                                data: index,
+                                render: function(data, type, row) {
+                                    if (type === 'display') {
+                                        const backgroundColor = categoryColors[data] || '#ffffff'; // default to white if category not found
+                                        return `<span style="display: block; text-align: center; background-color: ${backgroundColor}; padding: 2px 6px; border-radius: 3px;">${data}</span>`;
+                                    }
+                                    return data;
+                                }
+                            };
+                        }
+                        return {
+                            title: header,
+                            name: header,
+                            data: index
+                        };
+                    })
                     initComplete: function() {
                         // Add submit button handler
                         $('#submitFilters').on('click', function() {
