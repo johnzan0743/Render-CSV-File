@@ -201,6 +201,7 @@
         $(document).ready(function() {
             let selectedPriorities = new Set(['All']);
             let selectedRegions = new Set(['All']);
+            let parsedData = null; // Add this line to store the CSV data
             
             // Add this mapping near the top of your script
             const categoryColors = {
@@ -213,490 +214,484 @@
             };
             
             // Load CSV file and get headers
-            $.get('large_dataset.csv', function(csvData) {
-                // Get headers from CSV and filter out empty ones
-                const headers = csvData.split('\n')[0]
-                    .split(',')
-                    .map(header => header.trim().replace(/^"|"$/g, ''))  // Remove only enclosing quotes
-                    .filter(header => header && header.trim() !== '');    // Skip empty headers
-                
-                // Create header columns
-                const headerRow = $('#headerRow');
-                headers.forEach(header => {
-                    headerRow.append($('<th>').text(header));
-                });
-                
-                // Initialize DataTable after headers are created
-                let table = $('#dataTable').DataTable({
-                    processing: true,
-                    pageLength: 100,
-                    order: [[0, 'asc']],
-                    dom: 'lrtip',
-                    columns: headers.map((header, index) => {
-                        if (header === 'Category') {
+            // $.get('large_dataset.csv', function(csvData) {
+            Papa.parse('./large_dataset.csv', {
+                download: true,
+                header: false,
+                complete: function(results) {
+                        if (results.errors.length) {
+                            console.error('Error parsing CSV:', results.errors);
+                            return;
+                        }
+
+                        parsedData = results.data; // Store the parsed data
+                        const headers = parsedData[0]
+                            .map(header => header.trim().replace(/^"|"$/g, ''))
+                            .filter(header => header && header.trim() !== '');
+
+                        // Create header columns
+                        const headerRow = $('#headerRow');
+                        headers.forEach(header => {
+                            headerRow.append($('<th>').text(header));
+                        });   
+                                
+                    // Initialize DataTable after headers are created
+                    let table = $('#dataTable').DataTable({
+                        processing: true,
+                        pageLength: 100,
+                        order: [[0, 'asc']],
+                        dom: 'lrtip',
+                        columns: headers.map((header, index) => {
+                            if (header === 'Category') {
+                                return {
+                                    title: header,
+                                    name: header,
+                                    data: index,
+                                    render: function(data, type, row) {
+                                        if (type === 'display') {
+                                            const backgroundColor = categoryColors[data] || '#ffffff'; // default to white if category not found
+                                            return `<span style="display: block; text-align: center; background-color: ${backgroundColor}; padding: 2px 6px; border-radius: 3px;">${data}</span>`;
+                                        }
+                                        return data;
+                                    }
+                                };
+                            }
                             return {
                                 title: header,
                                 name: header,
-                                data: index,
-                                render: function(data, type, row) {
-                                    if (type === 'display') {
-                                        const backgroundColor = categoryColors[data] || '#ffffff'; // default to white if category not found
-                                        return `<span style="display: block; text-align: center; background-color: ${backgroundColor}; padding: 2px 6px; border-radius: 3px;">${data}</span>`;
-                                    }
-                                    return data;
-                                }
+                                data: index
                             };
-                        }
-                        return {
-                            title: header,
-                            name: header,
-                            data: index
-                        };
-                    }),
-                    initComplete: function() {
-                        // Add submit button handler
-                        $('#submitFilters').on('click', function() {
-                            applyAllFilters();
-                        });
+                        }),
+                        initComplete: function() {
+                            // Add submit button handler
+                            $('#submitFilters').on('click', function() {
+                                applyAllFilters();
+                            });
 
-                        // Load CSV file using PapaParse
-                        Papa.parse('./large_dataset.csv', {
-                            download: true,
-                            header: false,
-                            complete: function(results) {
-                                if (results.errors.length) {
-                                    console.error('Error parsing CSV:', results.errors);
-                                    return;
+                            const data = parsedData.slice(1)  // Skip header row
+                                .filter(row => row.length > 1); // Filter out empty rows
+                            
+                            // Get unique values from the data
+                            const uniqueRegions = [...new Set(data.map(row => row[8]))].sort();
+                            const uniquePriorities = [...new Set(data.map(row => row[9]))].sort();
+                            
+                            // Populate Region dropdown
+                            const $regionContainer = $('.region-dropdown').closest('.tag-filter-container');
+                            const $regionDropdown = $regionContainer.find('.dropdown-menu');
+                            
+                            // Clear and populate region options
+                            $('.region-dropdown').empty();
+                            $regionDropdown.empty();
+                            
+                            // Add "All" option for region
+                            $('.region-dropdown').append('<option value="All">All</option>');
+                            $regionDropdown.append(
+                                $('<div class="option">')
+                                    .text('All')
+                                    .data('value', 'All')
+                            );
+                            
+                            // Add region options from data
+                            uniqueRegions.forEach(region => {
+                                if (region) {
+                                    $('.region-dropdown').append(`<option value="${region}">${region}</option>`);
+                                    $regionDropdown.append(
+                                        $('<div class="option">')
+                                            .text(region)
+                                            .data('value', region)
+                                    );
                                 }
+                            });
+                            
+                            // Populate Priority dropdown
+                            const $priorityContainer = $('.priority-dropdown').closest('.tag-filter-container');
+                            const $priorityDropdown = $priorityContainer.find('.dropdown-menu');
+                            
+                            // Clear and populate priority options
+                            $('.priority-dropdown').empty();
+                            $priorityDropdown.empty();
+                            
+                            // Add "All" option for priority
+                            $('.priority-dropdown').append('<option value="All">All</option>');
+                            $priorityDropdown.append(
+                                $('<div class="option">')
+                                    .text('All')
+                                    .data('value', 'All')
+                            );
+                            
+                            // Add priority options from data
+                            uniquePriorities.forEach(priority => {
+                                if (priority) {
+                                    $('.priority-dropdown').append(`<option value="${priority}">${priority}</option>`);
+                                    $priorityDropdown.append(
+                                        $('<div class="option">')
+                                            .text(priority)
+                                            .data('value', priority)
+                                    );
+                                }
+                            });
+                            
+                            table.clear();
+                            table.rows.add(data).draw();
+                            
+                            console.log('Data loaded and drawn:', data.length, 'rows');
+                            console.log('Unique regions:', uniqueRegions);
+                            console.log('Unique priorities:', uniquePriorities);
+                        }
+                    });
 
-                                const data = results.data.slice(1)  // Skip header row
-                                    .filter(row => row.length > 1); // Filter out empty rows
-                                
-                                // Get unique values from the data
-                                const uniqueRegions = [...new Set(data.map(row => row[8]))].sort();
-                                const uniquePriorities = [...new Set(data.map(row => row[9]))].sort();
-                                
-                                // Populate Region dropdown
-                                const $regionContainer = $('.region-dropdown').closest('.tag-filter-container');
-                                const $regionDropdown = $regionContainer.find('.dropdown-menu');
-                                
-                                // Clear and populate region options
-                                $('.region-dropdown').empty();
-                                $regionDropdown.empty();
-                                
-                                // Add "All" option for region
-                                $('.region-dropdown').append('<option value="All">All</option>');
-                                $regionDropdown.append(
-                                    $('<div class="option">')
-                                        .text('All')
-                                        .data('value', 'All')
-                                );
-                                
-                                // Add region options from data
-                                uniqueRegions.forEach(region => {
-                                    if (region) {
-                                        $('.region-dropdown').append(`<option value="${region}">${region}</option>`);
-                                        $regionDropdown.append(
-                                            $('<div class="option">')
-                                                .text(region)
-                                                .data('value', region)
-                                        );
-                                    }
-                                });
-                                
-                                // Populate Priority dropdown
-                                const $priorityContainer = $('.priority-dropdown').closest('.tag-filter-container');
-                                const $priorityDropdown = $priorityContainer.find('.dropdown-menu');
-                                
-                                // Clear and populate priority options
-                                $('.priority-dropdown').empty();
-                                $priorityDropdown.empty();
-                                
-                                // Add "All" option for priority
-                                $('.priority-dropdown').append('<option value="All">All</option>');
-                                $priorityDropdown.append(
-                                    $('<div class="option">')
-                                        .text('All')
-                                        .data('value', 'All')
-                                );
-                                
-                                // Add priority options from data
-                                uniquePriorities.forEach(priority => {
-                                    if (priority) {
-                                        $('.priority-dropdown').append(`<option value="${priority}">${priority}</option>`);
-                                        $priorityDropdown.append(
-                                            $('<div class="option">')
-                                                .text(priority)
-                                                .data('value', priority)
-                                        );
-                                    }
-                                });
-                                
-                                table.clear();
-                                table.rows.add(data).draw();
-                                
-                                console.log('Data loaded and drawn:', data.length, 'rows');
-                                console.log('Unique regions:', uniqueRegions);
-                                console.log('Unique priorities:', uniquePriorities);
-                            },
-                            error: function(error) {
-                                console.error('Error loading CSV:', error);
-                            }
+                    // Convert select dropdowns to custom dropdowns
+                    $('.tag-filter-container').each(function() {
+                        const $container = $(this);
+                        const $select = $container.find('select');
+                        const options = $select.find('option').map(function() {
+                            return {
+                                value: $(this).val(),
+                                text: $(this).text()
+                            };
+                        }).get();
+                        
+                        // Create custom dropdown
+                        const $dropdown = $('<div class="dropdown-menu">');
+                        options.forEach(option => {
+                            $dropdown.append(
+                                $('<div class="option">')
+                                    .text(option.text)
+                                    .data('value', option.value)
+                            );
                         });
-                    }
-                });
-
-                // Convert select dropdowns to custom dropdowns
-                $('.tag-filter-container').each(function() {
-                    const $container = $(this);
-                    const $select = $container.find('select');
-                    const options = $select.find('option').map(function() {
-                        return {
-                            value: $(this).val(),
-                            text: $(this).text()
-                        };
-                    }).get();
-                    
-                    // Create custom dropdown
-                    const $dropdown = $('<div class="dropdown-menu">');
-                    options.forEach(option => {
-                        $dropdown.append(
-                            $('<div class="option">')
-                                .text(option.text)
-                                .data('value', option.value)
-                        );
+                        
+                        // Append dropdown after the container
+                        $container.append($dropdown);
+                        $select.hide();
                     });
                     
-                    // Append dropdown after the container
-                    $container.append($dropdown);
-                    $select.hide();
-                });
-                
-                // Handle container click to show/hide dropdown
-                $('.tag-filter-container').on('click', function(e) {
-                    e.stopPropagation();
-                    const $dropdown = $(this).find('.dropdown-menu');
+                    // Handle container click to show/hide dropdown
+                    $('.tag-filter-container').on('click', function(e) {
+                        e.stopPropagation();
+                        const $dropdown = $(this).find('.dropdown-menu');
+                        
+                        // Hide all other dropdowns
+                        $('.dropdown-menu').not($dropdown).hide();
+                        
+                        // Toggle current dropdown
+                        $dropdown.toggle();
+                    });
                     
-                    // Hide all other dropdowns
-                    $('.dropdown-menu').not($dropdown).hide();
-                    
-                    // Toggle current dropdown
-                    $dropdown.toggle();
-                });
-                
-                // Handle option selection
-                $('.dropdown-menu').on('click', '.option', function(e) {
-                    e.stopPropagation();
-                    const value = $(this).data('value');
-                    const $container = $(this).closest('.tag-filter-container');
-                    const isRegionFilter = $container.closest('.filter-group').find('.region-dropdown').length > 0;
-                    
-                    // Get all current tag values in this container
-                    const currentTags = new Set(
-                        $container.find('.priority-tag')
-                            .map(function() {
-                                return $(this).text().trim().replace('×', '');
-                            })
-                            .get()
-                    );
-                    
-                    // If value is already in the set, don't add it
-                    if (currentTags.has(value)) {
+                    // Handle option selection
+                    $('.dropdown-menu').on('click', '.option', function(e) {
+                        e.stopPropagation();
+                        const value = $(this).data('value');
+                        const $container = $(this).closest('.tag-filter-container');
+                        const isRegionFilter = $container.closest('.filter-group').find('.region-dropdown').length > 0;
+                        
+                        // Get all current tag values in this container
+                        const currentTags = new Set(
+                            $container.find('.priority-tag')
+                                .map(function() {
+                                    return $(this).text().trim().replace('×', '');
+                                })
+                                .get()
+                        );
+                        
+                        // If value is already in the set, don't add it
+                        if (currentTags.has(value)) {
+                            $(this).closest('.dropdown-menu').hide();
+                            return;
+                        }
+                        
+                        if (isRegionFilter) {
+                            if (value === 'All') {
+                                // Clear all existing tags
+                                $container.find('.priority-tag').remove();
+                                selectedRegions.clear();
+                                selectedRegions.add('All');
+                            } else {
+                                // Remove 'All' tag if it exists
+                                $container.find('.priority-tag:contains("All")').remove();
+                                selectedRegions.delete('All');
+                                selectedRegions.add(value);
+                            }
+                            handleRegionSelection(value, $container);
+                        } else {
+                            if (value === 'All') {
+                                // Clear all existing tags
+                                $container.find('.priority-tag').remove();
+                                selectedPriorities.clear();
+                                selectedPriorities.add('All');
+                            } else {
+                                // Remove 'All' tag if it exists
+                                $container.find('.priority-tag:contains("All")').remove();
+                                selectedPriorities.delete('All');
+                                selectedPriorities.add(value);
+                            }
+                            handlePrioritySelection(value, $container);
+                        }
+                        
+                        // Hide dropdown after selection
                         $(this).closest('.dropdown-menu').hide();
-                        return;
+                    });
+                    
+                    // Close dropdowns when clicking outside
+                    $(document).on('click', function() {
+                        $('.dropdown-menu').hide();
+                    });
+                    
+                    // Prevent dropdown from closing when clicking inside it
+                    $('.dropdown-menu').on('click', function(e) {
+                        e.stopPropagation();
+                    });
+                    
+                    // Helper function to create a tag
+                    function createTag(value) {
+                        return $(`<div class="priority-tag">
+                            ${value}
+                            <span class="remove">×</span>
+                        </div>`);
+                    }
+
+                    function handleRegionSelection(value, $container) {
+                        // Remove any duplicate tags first
+                        $container.find(`.priority-tag:contains("${value}")`).remove();
+                        
+                        const tag = createTag(value);
+                        tag.insertBefore($container.find('.dropdown-menu'));
+                        updateRegionFilter();
+                    }
+
+                    function handlePrioritySelection(value, $container) {
+                        // Remove any duplicate tags first
+                        $container.find(`.priority-tag:contains("${value}")`).remove();
+                        
+                        const tag = createTag(value);
+                        tag.insertBefore($container.find('.dropdown-menu'));
+                        updatePriorityFilter();
                     }
                     
-                    if (isRegionFilter) {
-                        if (value === 'All') {
-                            // Clear all existing tags
-                            $container.find('.priority-tag').remove();
+                    // Handle tag removal
+                    $('.tag-filter-container').on('click', '.remove', function(e) {
+                        e.stopPropagation();
+                        const value = $(this).parent().text().trim().replace('×', '').replace(/\n/g, '');  // Remove newlines
+                        const $container = $(this).closest('.tag-filter-container');
+                        const isRegionFilter = $container.closest('.filter-group').find('.region-dropdown').length > 0;
+                        
+                        console.log('=== Tag Removal Debug Info ===');
+                        console.log('Removing tag:', value);
+                        console.log('Is Region Filter:', isRegionFilter);
+                        
+                        if (isRegionFilter) {
+                            // Remove the tag from DOM first
+                            $(this).parent().remove();
+                            
+                            // Update the Set based on remaining visible tags
                             selectedRegions.clear();
-                            selectedRegions.add('All');
+                            $container.find('.priority-tag').each(function() {
+                                const tagValue = $(this).text().trim().replace('×', '').replace(/\n/g, '');  // Remove newlines
+                                selectedRegions.add(tagValue);
+                            });
+                            
+                            console.log('Before update - Selected Regions:', Array.from(selectedRegions));
+                            console.log('Remaining DOM tags:', $container.find('.priority-tag').length);
+                            
+                            // If no tags left, add "All" tag
+                            if ($container.find('.priority-tag').length === 0) {
+                                console.log('No tags left, adding All tag');
+                                selectedRegions.clear();
+                                selectedRegions.add('All');
+                                const tag = $(`<div class="priority-tag">
+                                    All
+                                    <span class="remove">×</span>
+                                </div>`);
+                                tag.insertBefore($container.find('.dropdown-menu'));
+                            }
+                            
+                            // Build search term from current Set
+                            let searchTerm = '';
+                            if (!selectedRegions.has('All')) {
+                                const remainingValues = Array.from(selectedRegions)
+                                    .map(value => value.trim().replace(/\n/g, ''));  // Clean values
+                                searchTerm = remainingValues.join('|');
+                            }
+                            
+                            console.log('Search term for filter:', searchTerm || 'empty (showing all)');
+                            console.log('Final Selected Regions:', Array.from(selectedRegions));
+                            
+                            // Apply filter
+                            table.column(8)
+                                .search(searchTerm, true, false)
+                                .draw();
                         } else {
-                            // Remove 'All' tag if it exists
-                            $container.find('.priority-tag:contains("All")').remove();
-                            selectedRegions.delete('All');
-                            selectedRegions.add(value);
-                        }
-                        handleRegionSelection(value, $container);
-                    } else {
-                        if (value === 'All') {
-                            // Clear all existing tags
-                            $container.find('.priority-tag').remove();
+                            // Similar logic for Priority filter
+                            $(this).parent().remove();
+                            
                             selectedPriorities.clear();
-                            selectedPriorities.add('All');
-                        } else {
-                            // Remove 'All' tag if it exists
-                            $container.find('.priority-tag:contains("All")').remove();
-                            selectedPriorities.delete('All');
-                            selectedPriorities.add(value);
-                        }
-                        handlePrioritySelection(value, $container);
-                    }
-                    
-                    // Hide dropdown after selection
-                    $(this).closest('.dropdown-menu').hide();
-                });
-                
-                // Close dropdowns when clicking outside
-                $(document).on('click', function() {
-                    $('.dropdown-menu').hide();
-                });
-                
-                // Prevent dropdown from closing when clicking inside it
-                $('.dropdown-menu').on('click', function(e) {
-                    e.stopPropagation();
-                });
-                
-                // Helper function to create a tag
-                function createTag(value) {
-                    return $(`<div class="priority-tag">
-                        ${value}
-                        <span class="remove">×</span>
-                    </div>`);
-                }
-
-                function handleRegionSelection(value, $container) {
-                    // Remove any duplicate tags first
-                    $container.find(`.priority-tag:contains("${value}")`).remove();
-                    
-                    const tag = createTag(value);
-                    tag.insertBefore($container.find('.dropdown-menu'));
-                    updateRegionFilter();
-                }
-
-                function handlePrioritySelection(value, $container) {
-                    // Remove any duplicate tags first
-                    $container.find(`.priority-tag:contains("${value}")`).remove();
-                    
-                    const tag = createTag(value);
-                    tag.insertBefore($container.find('.dropdown-menu'));
-                    updatePriorityFilter();
-                }
-                
-                // Handle tag removal
-                $('.tag-filter-container').on('click', '.remove', function(e) {
-                    e.stopPropagation();
-                    const value = $(this).parent().text().trim().replace('×', '').replace(/\n/g, '');  // Remove newlines
-                    const $container = $(this).closest('.tag-filter-container');
-                    const isRegionFilter = $container.closest('.filter-group').find('.region-dropdown').length > 0;
-                    
-                    console.log('=== Tag Removal Debug Info ===');
-                    console.log('Removing tag:', value);
-                    console.log('Is Region Filter:', isRegionFilter);
-                    
-                    if (isRegionFilter) {
-                        // Remove the tag from DOM first
-                        $(this).parent().remove();
-                        
-                        // Update the Set based on remaining visible tags
-                        selectedRegions.clear();
-                        $container.find('.priority-tag').each(function() {
-                            const tagValue = $(this).text().trim().replace('×', '').replace(/\n/g, '');  // Remove newlines
-                            selectedRegions.add(tagValue);
-                        });
-                        
-                        console.log('Before update - Selected Regions:', Array.from(selectedRegions));
-                        console.log('Remaining DOM tags:', $container.find('.priority-tag').length);
-                        
-                        // If no tags left, add "All" tag
-                        if ($container.find('.priority-tag').length === 0) {
-                            console.log('No tags left, adding All tag');
-                            selectedRegions.clear();
-                            selectedRegions.add('All');
-                            const tag = $(`<div class="priority-tag">
-                                All
-                                <span class="remove">×</span>
-                            </div>`);
-                            tag.insertBefore($container.find('.dropdown-menu'));
+                            $container.find('.priority-tag').each(function() {
+                                const tagValue = $(this).text().trim().replace('×', '').replace(/\n/g, '');  // Remove newlines
+                                selectedPriorities.add(tagValue);
+                            });
+                            
+                            console.log('Before update - Selected Priorities:', Array.from(selectedPriorities));
+                            console.log('Remaining DOM tags:', $container.find('.priority-tag').length);
+                            
+                            if ($container.find('.priority-tag').length === 0) {
+                                console.log('No tags left, adding All tag');
+                                selectedPriorities.clear();
+                                selectedPriorities.add('All');
+                                const tag = $(`<div class="priority-tag">
+                                    All
+                                    <span class="remove">×</span>
+                                </div>`);
+                                tag.insertBefore($container.find('.dropdown-menu'));
+                            }
+                            
+                            let searchTerm = '';
+                            if (!selectedPriorities.has('All')) {
+                                const remainingValues = Array.from(selectedPriorities)
+                                    .map(value => value.trim().replace(/\n/g, ''));  // Clean values
+                                searchTerm = remainingValues.join('|');
+                            }
+                            
+                            console.log('Search term for filter:', searchTerm || 'empty (showing all)');
+                            console.log('Final Selected Priorities:', Array.from(selectedPriorities));
+                            
+                            table.column(9)
+                                .search(searchTerm, true, false)
+                                .draw();
                         }
                         
-                        // Build search term from current Set
+                        console.log('=== End Debug Info ===\n');
+                    });
+                    
+                    function updateRegionFilter() {
                         let searchTerm = '';
-                        if (!selectedRegions.has('All')) {
-                            const remainingValues = Array.from(selectedRegions)
-                                .map(value => value.trim().replace(/\n/g, ''));  // Clean values
-                            searchTerm = remainingValues.join('|');
+                        
+                        if (selectedRegions.has('All')) {
+                            searchTerm = '';
+                        } else {
+                            const values = Array.from(selectedRegions);
+                            searchTerm = values.join('|');
                         }
                         
-                        console.log('Search term for filter:', searchTerm || 'empty (showing all)');
-                        console.log('Final Selected Regions:', Array.from(selectedRegions));
-                        
-                        // Apply filter
                         table.column(8)
                             .search(searchTerm, true, false)
                             .draw();
-                    } else {
-                        // Similar logic for Priority filter
-                        $(this).parent().remove();
-                        
-                        selectedPriorities.clear();
-                        $container.find('.priority-tag').each(function() {
-                            const tagValue = $(this).text().trim().replace('×', '').replace(/\n/g, '');  // Remove newlines
-                            selectedPriorities.add(tagValue);
-                        });
-                        
-                        console.log('Before update - Selected Priorities:', Array.from(selectedPriorities));
-                        console.log('Remaining DOM tags:', $container.find('.priority-tag').length);
-                        
-                        if ($container.find('.priority-tag').length === 0) {
-                            console.log('No tags left, adding All tag');
-                            selectedPriorities.clear();
-                            selectedPriorities.add('All');
-                            const tag = $(`<div class="priority-tag">
-                                All
-                                <span class="remove">×</span>
-                            </div>`);
-                            tag.insertBefore($container.find('.dropdown-menu'));
-                        }
-                        
+                    }
+                    
+                    function updatePriorityFilter() {
                         let searchTerm = '';
-                        if (!selectedPriorities.has('All')) {
-                            const remainingValues = Array.from(selectedPriorities)
-                                .map(value => value.trim().replace(/\n/g, ''));  // Clean values
-                            searchTerm = remainingValues.join('|');
-                        }
                         
-                        console.log('Search term for filter:', searchTerm || 'empty (showing all)');
-                        console.log('Final Selected Priorities:', Array.from(selectedPriorities));
+                        if (selectedPriorities.has('All')) {
+                            searchTerm = '';
+                        } else {
+                            const values = Array.from(selectedPriorities);
+                            searchTerm = values.join('|');
+                        }
                         
                         table.column(9)
                             .search(searchTerm, true, false)
                             .draw();
                     }
-                    
-                    console.log('=== End Debug Info ===\n');
-                });
-                
-                function updateRegionFilter() {
-                    let searchTerm = '';
-                    
-                    if (selectedRegions.has('All')) {
-                        searchTerm = '';
-                    } else {
-                        const values = Array.from(selectedRegions);
-                        searchTerm = values.join('|');
-                    }
-                    
-                    table.column(8)
-                        .search(searchTerm, true, false)
-                        .draw();
-                }
-                
-                function updatePriorityFilter() {
-                    let searchTerm = '';
-                    
-                    if (selectedPriorities.has('All')) {
-                        searchTerm = '';
-                    } else {
-                        const values = Array.from(selectedPriorities);
-                        searchTerm = values.join('|');
-                    }
-                    
-                    table.column(9)
-                        .search(searchTerm, true, false)
-                        .draw();
-                }
 
-                // Add toggle filters functionality
-                $('#toggleFilters').on('click', function() {
-                    $('.filters').toggleClass('hidden');
-                    // Update button text based on state
-                    $(this).text($('.filters').hasClass('hidden') ? 'Show Filters' : 'Hide Filters');
-                });
-                
-                // Set initial button text
-                $('#toggleFilters').text('Hide Filters');
-
-                // Set default "All" tags for both filters on page load
-                function setDefaultAllTags() {
-                    // Add "All" tag for Region
-                    selectedRegions.add('All');
-                    const regionTag = $(`<div class="priority-tag">
-                        All
-                        <span class="remove">×</span>
-                    </div>`);
-                    regionTag.insertBefore($('.region-dropdown'));
+                    // Add toggle filters functionality
+                    $('#toggleFilters').on('click', function() {
+                        $('.filters').toggleClass('hidden');
+                        // Update button text based on state
+                        $(this).text($('.filters').hasClass('hidden') ? 'Show Filters' : 'Hide Filters');
+                    });
                     
-                    // Add "All" tag for Priority
-                    selectedPriorities.add('All');
-                    const priorityTag = $(`<div class="priority-tag">
-                        All
-                        <span class="remove">×</span>
-                    </div>`);
-                    priorityTag.insertBefore($('.priority-dropdown'));
-                    
-                    // Update both filters
-                    updateRegionFilter();
-                    updatePriorityFilter();
-                }
+                    // Set initial button text
+                    $('#toggleFilters').text('Hide Filters');
 
-                // Call this after table initialization
-                setDefaultAllTags();
-
-                // Add reset filters functionality
-                $('#resetFilters').on('click', function() {
-                    // Clear search input
-                    $('#searchInput').val('');
-                    
-                    // Reset Region filter
-                    const $regionContainer = $('.region-dropdown').closest('.tag-filter-container');
-                    $regionContainer.find('.priority-tag').remove();
-                    selectedRegions.clear();
-                    selectedRegions.add('All');
-                    const regionTag = createTag('All');
-                    regionTag.insertBefore($regionContainer.find('.dropdown-menu'));
-                    
-                    // Reset Priority filter
-                    const $priorityContainer = $('.priority-dropdown').closest('.tag-filter-container');
-                    $priorityContainer.find('.priority-tag').remove();
-                    selectedPriorities.clear();
-                    selectedPriorities.add('All');
-                    const priorityTag = createTag('All');
-                    priorityTag.insertBefore($priorityContainer.find('.dropdown-menu'));
-                    
-                    // Apply reset filters
-                    applyAllFilters();
-                });
-
-                // Add new function to handle all filters
-                function applyAllFilters() {
-                    // Get search term
-                    const searchTerm = $('#searchInput').val();
-
-                    // Get region filter
-                    let regionTerm = '';
-                    if (!selectedRegions.has('All')) {
-                        regionTerm = Array.from(selectedRegions).join('|');
+                    // Set default "All" tags for both filters on page load
+                    function setDefaultAllTags() {
+                        // Add "All" tag for Region
+                        selectedRegions.add('All');
+                        const regionTag = $(`<div class="priority-tag">
+                            All
+                            <span class="remove">×</span>
+                        </div>`);
+                        regionTag.insertBefore($('.region-dropdown'));
+                        
+                        // Add "All" tag for Priority
+                        selectedPriorities.add('All');
+                        const priorityTag = $(`<div class="priority-tag">
+                            All
+                            <span class="remove">×</span>
+                        </div>`);
+                        priorityTag.insertBefore($('.priority-dropdown'));
+                        
+                        // Update both filters
+                        updateRegionFilter();
+                        updatePriorityFilter();
                     }
 
-                    // Get priority filter
-                    let priorityTerm = '';
-                    if (!selectedPriorities.has('All')) {
-                        priorityTerm = Array.from(selectedPriorities).join('|');
+                    // Call this after table initialization
+                    setDefaultAllTags();
+
+                    // Add reset filters functionality
+                    $('#resetFilters').on('click', function() {
+                        // Clear search input
+                        $('#searchInput').val('');
+                        
+                        // Reset Region filter
+                        const $regionContainer = $('.region-dropdown').closest('.tag-filter-container');
+                        $regionContainer.find('.priority-tag').remove();
+                        selectedRegions.clear();
+                        selectedRegions.add('All');
+                        const regionTag = createTag('All');
+                        regionTag.insertBefore($regionContainer.find('.dropdown-menu'));
+                        
+                        // Reset Priority filter
+                        const $priorityContainer = $('.priority-dropdown').closest('.tag-filter-container');
+                        $priorityContainer.find('.priority-tag').remove();
+                        selectedPriorities.clear();
+                        selectedPriorities.add('All');
+                        const priorityTag = createTag('All');
+                        priorityTag.insertBefore($priorityContainer.find('.dropdown-menu'));
+                        
+                        // Apply reset filters
+                        applyAllFilters();
+                    });
+
+                    // Add new function to handle all filters
+                    function applyAllFilters() {
+                        // Get search term
+                        const searchTerm = $('#searchInput').val();
+
+                        // Get region filter
+                        let regionTerm = '';
+                        if (!selectedRegions.has('All')) {
+                            regionTerm = Array.from(selectedRegions).join('|');
+                        }
+
+                        // Get priority filter
+                        let priorityTerm = '';
+                        if (!selectedPriorities.has('All')) {
+                            priorityTerm = Array.from(selectedPriorities).join('|');
+                        }
+
+                        // Apply all filters at once
+                        table
+                            .search(searchTerm) // Global search
+                            .column('Region:name').search(regionTerm, true, false) // Region filter
+                            .column('Priority:name').search(priorityTerm, true, false) // Priority filter
+                            .draw(); // Redraw table once
+
+                        console.log('Filters applied:', {
+                            search: searchTerm,
+                            region: regionTerm,
+                            priority: priorityTerm
+                        });
                     }
 
-                    // Apply all filters at once
-                    table
-                        .search(searchTerm) // Global search
-                        .column('Region:name').search(regionTerm, true, false) // Region filter
-                        .column('Priority:name').search(priorityTerm, true, false) // Priority filter
-                        .draw(); // Redraw table once
-
-                    console.log('Filters applied:', {
-                        search: searchTerm,
-                        region: regionTerm,
-                        priority: priorityTerm
+                    // Add this after the DataTable initialization
+                    $('#searchInput').on('keypress', function(e) {
+                        if (e.which === 13) { // 13 is the Enter key code
+                            e.preventDefault(); // Prevent default form submission
+                            $('#submitFilters').click(); // Trigger the Apply Filters button
+                        }
                     });
                 }
-
-                // Add this after the DataTable initialization
-                $('#searchInput').on('keypress', function(e) {
-                    if (e.which === 13) { // 13 is the Enter key code
-                        e.preventDefault(); // Prevent default form submission
-                        $('#submitFilters').click(); // Trigger the Apply Filters button
-                    }
-                });
             });
         });
     </script>
