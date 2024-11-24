@@ -202,6 +202,7 @@
             let selectedPriorities = new Set(['All']);
             let selectedRegions = new Set(['All']);
             let parsedData = null; // Add this line to store the CSV data
+            let table = null;
             
             // Add this mapping near the top of your script
             const categoryColors = {
@@ -236,7 +237,7 @@
                         });   
                                 
                     // Initialize DataTable after headers are created
-                    let table = $('#dataTable').DataTable({
+                    table = $('#dataTable').DataTable({
                         processing: true,
                         pageLength: 100,
                         order: [[0, 'asc']],
@@ -337,6 +338,67 @@
                             console.log('Data loaded and drawn:', data.length, 'rows');
                             console.log('Unique regions:', uniqueRegions);
                             console.log('Unique priorities:', uniquePriorities);
+
+                            function updateRegionFilter() {
+                                let searchTerm = '';
+                                
+                                if (selectedRegions.has('All')) {
+                                    searchTerm = '';
+                                } else {
+                                    const values = Array.from(selectedRegions);
+                                    searchTerm = values.join('|');
+                                }
+                                
+                                table.column(8)
+                                    .search(searchTerm, true, false)
+                                    .draw();
+                            }
+                            
+                            function updatePriorityFilter() {
+                                let searchTerm = '';
+                                
+                                if (selectedPriorities.has('All')) {
+                                    searchTerm = '';
+                                } else {
+                                    const values = Array.from(selectedPriorities);
+                                    searchTerm = values.join('|');
+                                }
+                                
+                                table.column(9)
+                                    .search(searchTerm, true, false)
+                                    .draw();
+                            }
+
+                            // Add new function to handle all filters
+                            function applyAllFilters() {
+                                // Get search term
+                                const searchTerm = $('#searchInput').val();
+
+                                // Get region filter
+                                let regionTerm = '';
+                                if (!selectedRegions.has('All')) {
+                                    regionTerm = Array.from(selectedRegions).join('|');
+                                }
+
+                                // Get priority filter
+                                let priorityTerm = '';
+                                if (!selectedPriorities.has('All')) {
+                                    priorityTerm = Array.from(selectedPriorities).join('|');
+                                }
+
+                                // Apply all filters at once
+                                table
+                                    .search(searchTerm) // Global search
+                                    .column('Region:name').search(regionTerm, true, false) // Region filter
+                                    .column('Priority:name').search(priorityTerm, true, false) // Priority filter
+                                    .draw(); // Redraw table once
+
+                                console.log('Filters applied:', {
+                                    search: searchTerm,
+                                    region: regionTerm,
+                                    priority: priorityTerm
+                                });
+                            }
                         }
                     });
 
@@ -562,35 +624,7 @@
                         console.log('=== End Debug Info ===\n');
                     });
                     
-                    function updateRegionFilter() {
-                        let searchTerm = '';
-                        
-                        if (selectedRegions.has('All')) {
-                            searchTerm = '';
-                        } else {
-                            const values = Array.from(selectedRegions);
-                            searchTerm = values.join('|');
-                        }
-                        
-                        table.column(8)
-                            .search(searchTerm, true, false)
-                            .draw();
-                    }
                     
-                    function updatePriorityFilter() {
-                        let searchTerm = '';
-                        
-                        if (selectedPriorities.has('All')) {
-                            searchTerm = '';
-                        } else {
-                            const values = Array.from(selectedPriorities);
-                            searchTerm = values.join('|');
-                        }
-                        
-                        table.column(9)
-                            .search(searchTerm, true, false)
-                            .draw();
-                    }
 
                     // Add toggle filters functionality
                     $('#toggleFilters').on('click', function() {
@@ -653,36 +687,7 @@
                         applyAllFilters();
                     });
 
-                    // Add new function to handle all filters
-                    function applyAllFilters() {
-                        // Get search term
-                        const searchTerm = $('#searchInput').val();
-
-                        // Get region filter
-                        let regionTerm = '';
-                        if (!selectedRegions.has('All')) {
-                            regionTerm = Array.from(selectedRegions).join('|');
-                        }
-
-                        // Get priority filter
-                        let priorityTerm = '';
-                        if (!selectedPriorities.has('All')) {
-                            priorityTerm = Array.from(selectedPriorities).join('|');
-                        }
-
-                        // Apply all filters at once
-                        table
-                            .search(searchTerm) // Global search
-                            .column('Region:name').search(regionTerm, true, false) // Region filter
-                            .column('Priority:name').search(priorityTerm, true, false) // Priority filter
-                            .draw(); // Redraw table once
-
-                        console.log('Filters applied:', {
-                            search: searchTerm,
-                            region: regionTerm,
-                            priority: priorityTerm
-                        });
-                    }
+                    
 
                     // Add this after the DataTable initialization
                     $('#searchInput').on('keypress', function(e) {
