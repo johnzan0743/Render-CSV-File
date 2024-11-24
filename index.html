@@ -335,13 +335,8 @@
                                     }
                                 });
                                 
-                                // table.clear();
-                                // table.rows.add(data).draw();
-
-                                table.processing(true);
                                 table.clear();
                                 table.rows.add(data).draw(false);
-                                table.processing(false);
                                 
                                 console.log('Data loaded and drawn:', data.length, 'rows');
                                 console.log('Unique regions:', uniqueRegions);
