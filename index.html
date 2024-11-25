@@ -495,6 +495,19 @@
                             .draw();
                     }
 
+                    function setDefaultAllTags() {
+                        selectedRegions.add('All');
+                        const regionTag = createTag('All');
+                        regionTag.insertBefore($('.region-dropdown'));
+                        
+                        selectedPriorities.add('All');
+                        const priorityTag = createTag('All');
+                        priorityTag.insertBefore($('.priority-dropdown'));
+                        
+                        updateRegionFilter();
+                        updatePriorityFilter();
+                    }
+
                     // Handle search input
                     $('#searchInput').on('keypress', function(e) {
                         if (e.which === 13) {
@@ -563,19 +576,8 @@
                     console.error('Error loading CSV:', error);
                 }
             });
-            // Helper function to set default tags
-            function setDefaultAllTags() {
-                selectedRegions.add('All');
-                const regionTag = createTag('All');
-                regionTag.insertBefore($('.region-dropdown'));
-                
-                selectedPriorities.add('All');
-                const priorityTag = createTag('All');
-                priorityTag.insertBefore($('.priority-dropdown'));
-                
-                updateRegionFilter();
-                updatePriorityFilter();
-            }
+            
+            
 
         });
     </script>
