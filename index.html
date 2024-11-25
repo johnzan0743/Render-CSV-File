@@ -172,6 +172,34 @@
             background: white; /* Match with thead background */
             box-shadow: 0 1px 1px rgba(0,0,0,0.1); /* Optional: adds subtle shadow below headers */
         }
+
+        /* Modify header appearance */
+        thead th {
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 100;
+            /* Add stronger shadow */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            /* Reduce height */
+            padding: 8px 18px !important; /* Default is usually 10px 18px */
+            height: 40px !important; /* Control the exact height */
+            /* Optional: make text more prominent */
+            font-weight: 600;
+        }
+
+        /* Optional: Add hover effect on header */
+        thead th:hover {
+            background-color: #f8f9fa;
+        }
+
+        /* Make sure the shadow shows */
+        thead {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: white;
+        }
     </style>
 </head>
 <body>
