@@ -393,7 +393,9 @@
                     // Initialize custom dropdowns
                     $('.tag-filter-container').on('click', function(e) {
                         e.stopPropagation();
-                        $(this).find('.dropdown-menu').toggle();
+                        const $dropdown = $(this).find('.dropdown-menu');
+                        $('.dropdown-menu').not($dropdown).hide();  // Close other dropdowns
+                        $dropdown.toggle();
                     });
 
                     // Handle option selection
