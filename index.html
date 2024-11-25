@@ -258,18 +258,7 @@
             };
             
             // Load CSV file and get headers
-            $.get('large_dataset.csv', function(csvData) {
-                // Get headers from CSV and filter out empty ones
-                const headers = csvData.split('\n')[0]
-                    .split(',')
-                    .map(header => header.trim().replace(/^"|"$/g, ''))  // Remove only enclosing quotes
-                    .filter(header => header && header.trim() !== '');    // Skip empty headers
-                
-                // Create header columns
-                const headerRow = $('#headerRow');
-                headers.forEach(header => {
-                    headerRow.append($('<th>').text(header));
-                });
+            // $.get('large_dataset.csv', function(csvData) {
                 
                 // Initialize DataTable after headers are created
                 let table = $('#dataTable').DataTable({
@@ -314,6 +303,17 @@
                                     console.error('Error parsing CSV:', results.errors);
                                     return;
                                 }
+
+                                // Get headers from CSV and filter out empty ones
+                                const headers = results.data[0]
+                                    .map(header => header.trim().replace(/^"|"$/g, ''))
+                                    .filter(header => header && header.trim() !== '');
+
+                                // Create header columns
+                                const headerRow = $('#headerRow');
+                                headers.forEach(header => {
+                                    headerRow.append($('<th>').text(header));
+                                });
 
                                 const data = results.data.slice(1)  // Skip header row
                                     .filter(row => row.length > 1); // Filter out empty rows
@@ -743,7 +743,7 @@
                         $('#submitFilters').click(); // Trigger the Apply Filters button
                     }
                 });
-            });
+            // });
         });
     </script>
 </body>
