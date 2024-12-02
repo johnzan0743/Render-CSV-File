@@ -405,7 +405,8 @@
                     
                     // Create custom dropdown
                     const $dropdown = $('<div class="dropdown-menu">');
-                    $dropdown.append($('<input type="text" class="dropdown-search">'))
+                    // Add search input
+                    $dropdown.append('<input type="text" class="dropdown-search" placeholder="Search...">');
                     options.forEach(option => {
                         $dropdown.append(
                             $('<div class="option">')
