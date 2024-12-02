@@ -379,17 +379,26 @@
                     const regionTerm = $('.region-dropdown').val(); // Get selected region
                     const priorityTerm = $('.priority-dropdown').val(); // Get selected priority
 
+                    // Debugging: Log the filter values
+                    console.log('Search Term:', searchTerm);
+                    console.log('Selected Region:', regionTerm);
+                    console.log('Selected Priority:', priorityTerm);
+
+                    // Ensure regionTerm and priorityTerm are arrays
+                    const regionFilter = Array.isArray(regionTerm) ? regionTerm : [regionTerm];
+                    const priorityFilter = Array.isArray(priorityTerm) ? priorityTerm : [priorityTerm];
+
                     // Apply all filters at once
                     table
                         .search(searchTerm) // Global search
-                        .column('Region:name').search(regionTerm && regionTerm[0] !== 'All' ? regionTerm.join('|') : '', true, false) // Region filter
-                        .column('Priority:name').search(priorityTerm && priorityTerm[0] !== 'All' ? priorityTerm.join('|') : '', true, false) // Priority filter
+                        .column('Region:name').search(regionFilter[0] && regionFilter[0] !== 'All' ? regionFilter.join('|') : '', true, false) // Region filter
+                        .column('Priority:name').search(priorityFilter[0] && priorityFilter[0] !== 'All' ? priorityFilter.join('|') : '', true, false) // Priority filter
                         .draw(); // Redraw table once
 
                     console.log('Filters applied:', {
                         search: searchTerm,
-                        region: regionTerm,
-                        priority: priorityTerm
+                        region: regionFilter,
+                        priority: priorityFilter
                     });
                 }
             });
