@@ -397,6 +397,11 @@
                     const isHidden = $('.filters').is(':hidden');
                     $(this).text(isHidden ? 'Show Filters' : 'Hide Filters'); // Update button text
                 });
+
+                // Add event listeners for dropdown changes
+                $('.region-dropdown, .priority-dropdown').on('change', function() {
+                    applyAllFilters(); // Call the function to apply filters and update the table
+                });
             });
         });
     </script>
