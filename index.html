@@ -318,7 +318,9 @@
                                 // Initialize Select2 for Region dropdown
                                 $regionDropdown.select2({
                                     placeholder: "Select a region",
-                                    allowClear: true
+                                    allowClear: true,
+                                    multiple: true,
+                                    closeOnSelect: false
                                 });
 
                                 // Populate Priority dropdown
@@ -335,7 +337,9 @@
                                 // Initialize Select2 for Priority dropdown
                                 $priorityDropdown.select2({
                                     placeholder: "Select a priority",
-                                    allowClear: true
+                                    allowClear: true,
+                                    multiple: true,
+                                    closeOnSelect: false
                                 });
                                 
                                 table.clear();
