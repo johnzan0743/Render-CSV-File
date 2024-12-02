@@ -313,7 +313,7 @@
                                     placeholder: "Select a region",
                                     allowClear: true,
                                     multiple: true,
-                                    closeOnSelect: false
+                                    closeOnSelect: true
                                 });
 
                                 // Populate Priority dropdown
@@ -332,7 +332,7 @@
                                     placeholder: "Select a priority",
                                     allowClear: true,
                                     multiple: true,
-                                    closeOnSelect: false
+                                    closeOnSelect: true
                                 });
                                 
                                 table.clear();
@@ -351,21 +351,13 @@
                     $('#searchInput').val('');
                     
                     // Reset Region filter
-                    const $regionContainer = $('.region-dropdown').closest('.tag-filter-container');
-                    $regionContainer.find('.priority-tag').remove();
-                    selectedRegions.clear();
-                    selectedRegions.add('All');
-                    const regionTag = $(`<div class="priority-tag">All<span class="remove">×</span></div>`);
-                    regionTag.insertBefore($regionContainer.find('.dropdown-menu'));
-                    
+                    const $regionDropdown = $('.region-dropdown');
+                    $regionDropdown.val(null).trigger('change'); // Reset Select2 dropdown
+
                     // Reset Priority filter
-                    const $priorityContainer = $('.priority-dropdown').closest('.tag-filter-container');
-                    $priorityContainer.find('.priority-tag').remove();
-                    selectedPriorities.clear();
-                    selectedPriorities.add('All');
-                    const priorityTag = $(`<div class="priority-tag">All<span class="remove">×</span></div>`);
-                    priorityTag.insertBefore($priorityContainer.find('.dropdown-menu'));
-                    
+                    const $priorityDropdown = $('.priority-dropdown');
+                    $priorityDropdown.val(null).trigger('change'); // Reset Select2 dropdown
+
                     // Apply reset filters
                     applyAllFilters();
                 });
@@ -398,6 +390,13 @@
                         priority: priorityFilter
                     });
                 }
+
+                // Toggle filters visibility
+                $('#toggleFilters').on('click', function() {
+                    $('.filters').toggle(); // Toggle the visibility of the filters
+                    const isHidden = $('.filters').is(':hidden');
+                    $(this).text(isHidden ? 'Show Filters' : 'Hide Filters'); // Update button text
+                });
             });
         });
     </script>
