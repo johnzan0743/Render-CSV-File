@@ -22,6 +22,12 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/scroller/2.3.0/js/dataTables.scroller.min.js"></script>
 
+    <!-- Select2 CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+
+    <!-- Select2 JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -323,59 +329,37 @@
                                 const uniquePriorities = [...new Set(data.map(row => row[9]))].sort();
                                 
                                 // Populate Region dropdown
-                                const $regionContainer = $('.region-dropdown').closest('.tag-filter-container');
-                                const $regionDropdown = $regionContainer.find('.dropdown-menu');
-                                
-                                // Clear and populate region options
-                                $('.region-dropdown').empty();
-                                $regionDropdown.empty();
-                                
-                                // Add "All" option for region
-                                $('.region-dropdown').append('<option value="All">All</option>');
-                                $regionDropdown.append(
-                                    $('<div class="option">')
-                                        .text('All')
-                                        .data('value', 'All')
-                                );
-                                
-                                // Add region options from data
+                                const $regionDropdown = $('.region-dropdown');
+                                $regionDropdown.empty(); // Clear existing options
+                                $regionDropdown.append('<option value="All">All</option>'); // Add "All" option
+
                                 uniqueRegions.forEach(region => {
                                     if (region) {
-                                        $('.region-dropdown').append(`<option value="${region}">${region}</option>`);
-                                        $regionDropdown.append(
-                                            $('<div class="option">')
-                                                .text(region)
-                                                .data('value', region)
-                                        );
+                                        $regionDropdown.append(`<option value="${region}">${region}</option>`);
                                     }
                                 });
-                                
+
+                                // Initialize Select2 for Region dropdown
+                                $regionDropdown.select2({
+                                    placeholder: "Select a region",
+                                    allowClear: true
+                                });
+
                                 // Populate Priority dropdown
-                                const $priorityContainer = $('.priority-dropdown').closest('.tag-filter-container');
-                                const $priorityDropdown = $priorityContainer.find('.dropdown-menu');
-                                
-                                // Clear and populate priority options
-                                $('.priority-dropdown').empty();
-                                $priorityDropdown.empty();
-                                
-                                // Add "All" option for priority
-                                $('.priority-dropdown').append('<option value="All">All</option>');
-                                $priorityDropdown.append(
-                                    $('<div class="option">')
-                                        .text('All')
-                                        .data('value', 'All')
-                                );
-                                
-                                // Add priority options from data
+                                const $priorityDropdown = $('.priority-dropdown');
+                                $priorityDropdown.empty(); // Clear existing options
+                                $priorityDropdown.append('<option value="All">All</option>'); // Add "All" option
+
                                 uniquePriorities.forEach(priority => {
                                     if (priority) {
-                                        $('.priority-dropdown').append(`<option value="${priority}">${priority}</option>`);
-                                        $priorityDropdown.append(
-                                            $('<div class="option">')
-                                                .text(priority)
-                                                .data('value', priority)
-                                        );
+                                        $priorityDropdown.append(`<option value="${priority}">${priority}</option>`);
                                     }
+                                });
+
+                                // Initialize Select2 for Priority dropdown
+                                $priorityDropdown.select2({
+                                    placeholder: "Select a priority",
+                                    allowClear: true
                                 });
                                 
                                 table.clear();
@@ -718,26 +702,15 @@
 
                 // Add new function to handle all filters
                 function applyAllFilters() {
-                    // Get search term
                     const searchTerm = $('#searchInput').val();
-
-                    // Get region filter
-                    let regionTerm = '';
-                    if (!selectedRegions.has('All')) {
-                        regionTerm = Array.from(selectedRegions).join('|');
-                    }
-
-                    // Get priority filter
-                    let priorityTerm = '';
-                    if (!selectedPriorities.has('All')) {
-                        priorityTerm = Array.from(selectedPriorities).join('|');
-                    }
+                    const regionTerm = $('.region-dropdown').val(); // Get selected region
+                    const priorityTerm = $('.priority-dropdown').val(); // Get selected priority
 
                     // Apply all filters at once
                     table
                         .search(searchTerm) // Global search
-                        .column('Region:name').search(regionTerm, true, false) // Region filter
-                        .column('Priority:name').search(priorityTerm, true, false) // Priority filter
+                        .column('Region:name').search(regionTerm && regionTerm[0] !== 'All' ? regionTerm.join('|') : '', true, false) // Region filter
+                        .column('Priority:name').search(priorityTerm && priorityTerm[0] !== 'All' ? priorityTerm.join('|') : '', true, false) // Priority filter
                         .draw(); // Redraw table once
 
                     console.log('Filters applied:', {
