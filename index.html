@@ -405,6 +405,7 @@
                     
                     // Create custom dropdown
                     const $dropdown = $('<div class="dropdown-menu">');
+                    $dropdown.append($('<input type="text" class="dropdown-search">'))
                     options.forEach(option => {
                         $dropdown.append(
                             $('<div class="option">')
@@ -416,6 +417,15 @@
                     // Append dropdown after the container
                     $container.append($dropdown);
                     $select.hide();
+                });
+
+                // Add this inside your existing dropdown setup
+                $('.dropdown-search').on('input', function() {
+                    const searchTerm = $(this).val().toLowerCase();
+                    $(this).siblings('.option').each(function() {
+                        const optionText = $(this).text().toLowerCase();
+                        $(this).toggle(optionText.includes(searchTerm));
+                    });
                 });
                 
                 // Handle container click to show/hide dropdown
